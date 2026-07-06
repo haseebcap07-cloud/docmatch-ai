@@ -1,0 +1,24 @@
+{
+  "extract_jd": {
+    "job_description": "We are hiring a Data Engineer with Python, SQL, Azure Data Factory, Databricks, PySpark, and ETL pipeline experience."
+  },
+  "rephrase": {
+    "text": "I worked on data pipelines and fixed issues.",
+    "tone": "professional"
+  },
+  "tailor": {
+    "job_description": "Need Data Engineer with Python, SQL, Spark, Azure, ETL, and dashboard experience.",
+    "document_text": "Built data pipelines using Python and SQL. Supported reporting workflows.",
+    "target_role": "Data Engineer"
+  },
+  "format": {
+    "document_text": "SUMMARY\\nData Engineer with Python SQL experience.\\nEXPERIENCE\\nBuilt pipelines.",
+    "format_style": "resume"
+  },
+  "lead": {
+    "name": "Demo User",
+    "email": "demo@example.com",
+    "company": "Demo Company",
+    "message": "I want to try the platform."
+  }
+}

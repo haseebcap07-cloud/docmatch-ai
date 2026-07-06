@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>JD Tailoring API Demo</title>
+</head>
+<body>
+  <h1>JD Tailoring API Demo</h1>
+
+  <textarea id="jd" rows="8" cols="80" placeholder="Paste job description"></textarea>
+  <br /><br />
+
+  <textarea id="doc" rows="8" cols="80" placeholder="Paste resume or document"></textarea>
+  <br /><br />
+
+  <button onclick="runTailor()">Tailor Document</button>
+
+  <pre id="result"></pre>
+
+  <script src="./marketing_api.js"></script>
+  <script>
+    async function runTailor() {
+      const jd = document.getElementById("jd").value;
+      const doc = document.getElementById("doc").value;
+      const result = document.getElementById("result");
+
+      try {
+        const data = await tailorDocument(jd, doc, "Target Role");
+        result.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        result.textContent = error.message;
+      }
+    }
+  </script>
+</body>
+</html>

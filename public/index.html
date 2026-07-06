@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocMatch AI — Tailor Documents to Job Descriptions</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="brand">
+      <div class="brand-mark">D</div>
+      <div>
+        <strong>DocMatch AI</strong>
+        <span>JD-tailored documents</span>
+      </div>
+    </div>
+    <nav>
+      <a href="#app">Try it</a>
+      <a href="#how">How it works</a>
+      <a href="#security">Privacy</a>
+      <a href="/docs" target="_blank">API Docs</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="pill">Upload document → paste JD → download tailored DOCX</div>
+        <h1>Match your resume or document to any job description in minutes.</h1>
+        <p>
+          Upload your document, paste a job description, and generate a tailored DOCX output with
+          matched requirements, ATS-focused keywords, improved wording, and clean formatting.
+        </p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#app">Start tailoring</a>
+          <a class="btn secondary" href="/docs" target="_blank">View API</a>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="mini-window">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <div class="check-line"><span></span> Job description scanned</div>
+          <div class="check-line"><span></span> Resume text extracted</div>
+          <div class="check-line"><span></span> Requirements matched</div>
+          <div class="check-line"><span></span> DOCX ready to download</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="app" class="app-section">
+      <div class="section-heading">
+        <span>Live tool</span>
+        <h2>Generate your tailored output document</h2>
+        <p>Supported now: DOCX, TXT, and MD. PDF support can be added later with a PDF parser.</p>
+      </div>
+
+      <form id="tailorForm" class="tool-grid">
+        <div class="panel">
+          <label for="jobDescription">Paste job description</label>
+          <textarea id="jobDescription" name="jobDescription" placeholder="Paste the full job description here..." required></textarea>
+
+          <label for="targetRole">Target role title</label>
+          <input id="targetRole" name="targetRole" type="text" placeholder="Example: Data Engineer, Software Developer, Business Analyst" />
+        </div>
+
+        <div class="panel upload-panel">
+          <label for="documentFile">Upload your document</label>
+          <div class="drop-zone" id="dropZone">
+            <input id="documentFile" name="documentFile" type="file" accept=".docx,.txt,.md" required />
+            <div class="upload-icon">⬆</div>
+            <h3>Drop your file here or click to upload</h3>
+            <p>DOCX, TXT, or MD accepted</p>
+            <strong id="fileName">No file selected</strong>
+          </div>
+
+          <button id="generateBtn" class="btn primary full" type="submit">
+            Generate tailored document
+          </button>
+
+          <div id="statusBox" class="status hidden"></div>
+
+          <div id="resultBox" class="result hidden">
+            <h3>Your tailored document is ready</h3>
+            <p>Download the DOCX file and review it before submitting anywhere.</p>
+            <a id="downloadLink" class="btn success" href="#" download>Download DOCX</a>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <section id="how" class="steps">
+      <div class="section-heading">
+        <span>Workflow</span>
+        <h2>How it works</h2>
+      </div>
+
+      <div class="cards">
+        <article>
+          <b>01</b>
+          <h3>Upload your document</h3>
+          <p>Add your resume, cover letter, or plain text document.</p>
+        </article>
+        <article>
+          <b>02</b>
+          <h3>Paste the job description</h3>
+          <p>The system reads the JD and identifies important skills, tools, and responsibilities.</p>
+        </article>
+        <article>
+          <b>03</b>
+          <h3>Download tailored DOCX</h3>
+          <p>Get a cleaner, requirement-matched output document for review and editing.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="section-heading">
+        <span>Features</span>
+        <h2>Built for job seekers and professionals</h2>
+      </div>
+
+      <div class="feature-grid">
+        <div>ATS keyword matching</div>
+        <div>JD requirement extraction</div>
+        <div>Tailored summary generation</div>
+        <div>Output DOCX download</div>
+        <div>Simple API backend</div>
+        <div>Public website-ready UI</div>
+      </div>
+    </section>
+
+    <section id="security" class="security">
+      <div>
+        <span>Privacy note</span>
+        <h2>You control what you upload.</h2>
+        <p>
+          This starter processes uploaded files through your backend. For production, add authentication,
+          database controls, file deletion policies, malware scanning, logging, and a privacy policy before public launch.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <strong>DocMatch AI</strong>
+    <span>Built with FastAPI + public web UI</span>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
