@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: resume-tailor-pro-v3
+    name: resume-tailor-pro-v4
     env: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
@@ -12,6 +12,8 @@ services:
       - key: OPENAI_MODEL
         value: gpt-4.1-mini
       - key: MAX_UPLOAD_MB
-        value: 8
+        value: 10
       - key: TARGET_ATS_SCORE
         value: 90
+      - key: PRESERVE_DOCX_LAYOUT
+        value: true

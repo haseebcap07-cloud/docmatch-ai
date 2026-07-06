@@ -2,7 +2,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
@@ -14,8 +14,8 @@ PUBLIC_DIR = BASE_DIR / "public"
 
 app = FastAPI(
     title=settings.APP_NAME,
-    version="3.0.0",
-    description="Resume Tailor Pro V3 — ATS 90+ target resume tailoring engine.",
+    version="4.0.0",
+    description="Resume Tailor Pro V4 — resume intelligence, ATS targeting, and DOCX layout preservation.",
 )
 
 app.add_middleware(
@@ -25,6 +25,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Internal server error",
+            "error": str(exc)[:500],
+        },
+    )
 
 
 @app.get("/health")

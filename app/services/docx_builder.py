@@ -59,10 +59,10 @@ def _document_xml(lines: list[tuple[str, str | None]]) -> str:
 </w:document>"""
 
 
-def create_docx(output_path: Path, title: str, content: str) -> None:
+def create_generated_docx(output_path: Path, title: str, content: str) -> None:
     headings = {
-        "ATS TARGET SCORE",
-        "JOB TARGET",
+        "ATS SCORE REPORT",
+        "TARGET ROLE",
         "OPTIMIZED HEADLINE",
         "PROFESSIONAL SUMMARY",
         "CORE SKILLS",

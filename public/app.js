@@ -6,14 +6,17 @@ const statusBox = document.getElementById("statusBox");
 const generateBtn = document.getElementById("generateBtn");
 const results = document.getElementById("results");
 
-const score = document.getElementById("score");
+const scoreBefore = document.getElementById("scoreBefore");
+const scoreAfter = document.getElementById("scoreAfter");
 const resultTitle = document.getElementById("resultTitle");
 const scoreReason = document.getElementById("scoreReason");
 const downloadLink = document.getElementById("downloadLink");
+const layoutProfile = document.getElementById("layoutProfile");
+const layoutNotes = document.getElementById("layoutNotes");
 const matchedMustHaves = document.getElementById("matchedMustHaves");
 const missingKeywords = document.getElementById("missingKeywords");
+const shortlistWords = document.getElementById("shortlistWords");
 const actionPlan = document.getElementById("actionPlan");
-const warnings = document.getElementById("warnings");
 const preview = document.getElementById("preview");
 
 fileInput.addEventListener("change", () => {
@@ -65,7 +68,7 @@ form.addEventListener("submit", async (event) => {
   formData.append("file", file);
 
   results.classList.add("hidden");
-  showStatus("Analyzing resume against JD. AI mode can take 20–60 seconds...", false);
+  showStatus("V4 is reading resume layout, analyzing JD fit, and preserving DOCX formatting when possible...", false);
   generateBtn.disabled = true;
   generateBtn.textContent = "Generating...";
 
@@ -75,10 +78,17 @@ form.addEventListener("submit", async (event) => {
       body: formData,
     });
 
-    const data = await response.json();
+    const raw = await response.text();
+    let data;
+
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      throw new Error(raw || "Server returned a non-JSON response. Check Render logs.");
+    }
 
     if (!response.ok) {
-      throw new Error(data.detail || "Generation failed.");
+      throw new Error(data.detail || data.error || "Generation failed.");
     }
 
     renderResults(data);
@@ -89,22 +99,45 @@ form.addEventListener("submit", async (event) => {
     showStatus(error.message, true);
   } finally {
     generateBtn.disabled = false;
-    generateBtn.textContent = "Generate 90+ Target Resume";
+    generateBtn.textContent = "Generate V4 Tailored Resume";
   }
 });
 
 function renderResults(data) {
-  score.textContent = data.ats_score || 0;
-  resultTitle.textContent = `${data.job_title_guess || "Target Role"} — ${data.score_gap_to_90 === 0 ? "90+ Ready" : "Needs " + data.score_gap_to_90 + " points"}`;
+  scoreBefore.textContent = data.ats_score_before || 0;
+  scoreAfter.textContent = data.ats_score_after || 0;
+  resultTitle.textContent = `${data.job_title_guess || "Target Role"} — ${data.score_gap_to_90 === 0 ? "90+ Target Met" : "Needs " + data.score_gap_to_90 + " points"}`;
   scoreReason.textContent = data.score_reason || "";
   downloadLink.href = data.download_url || "#";
-  downloadLink.download = data.filename || "tailored_resume.docx";
+  downloadLink.download = data.filename || "tailored_resume_v4.docx";
 
+  renderProfile(data.resume_profile || {});
+  renderList(layoutNotes, (data.resume_profile && data.resume_profile.layout_notes) || []);
   renderTags(matchedMustHaves, data.matched_must_haves || data.matched_keywords || []);
   renderList(missingKeywords, data.missing_keywords || []);
+  renderTags(shortlistWords, data.role_shortlist_words || []);
   renderList(actionPlan, data.truthful_90_plus_actions || []);
-  renderList(warnings, data.recruiter_warnings || []);
   preview.textContent = data.preview_text || "";
+}
+
+function renderProfile(profile) {
+  layoutProfile.innerHTML = "";
+  const items = [
+    ["Source", profile.source_type || "unknown"],
+    ["Mode", profile.preserve_mode || "unknown"],
+    ["Pages", profile.estimated_page_count || 1],
+    ["Paragraphs", profile.paragraph_count || 0],
+    ["Words", profile.word_count || 0],
+    ["Sections", (profile.detected_sections || []).join(", ") || "Not detected"],
+    ["Fonts", (profile.detected_fonts || []).join(", ") || "Inherited/unknown"],
+    ["Font sizes", (profile.detected_font_sizes || []).join(", ") || "Inherited/unknown"],
+  ];
+
+  items.forEach(([label, value]) => {
+    const div = document.createElement("div");
+    div.innerHTML = `<small>${escapeHtml(label)}</small><strong>${escapeHtml(String(value))}</strong>`;
+    layoutProfile.appendChild(div);
+  });
 }
 
 function renderTags(container, items) {
@@ -116,7 +149,7 @@ function renderTags(container, items) {
     return;
   }
 
-  items.slice(0, 30).forEach((item) => {
+  items.slice(0, 35).forEach((item) => {
     const span = document.createElement("span");
     span.textContent = item;
     container.appendChild(span);
@@ -144,4 +177,14 @@ function showStatus(message, isError) {
   statusBox.classList.remove("hidden");
   statusBox.style.background = isError ? "#ffecec" : "#fff8e6";
   statusBox.style.borderColor = isError ? "#ffb3b3" : "#ffe1a2";
+}
+
+function escapeHtml(value) {
+  return value.replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  }[char]));
 }
