@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
-from app.routers import documents, leads
+from app.routers import resumes
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -14,8 +14,8 @@ PUBLIC_DIR = BASE_DIR / "public"
 
 app = FastAPI(
     title=settings.APP_NAME,
-    version="1.0.0",
-    description="API and public website for job description extraction, resume tailoring, rephrasing, formatting, and lead capture.",
+    version="3.0.0",
+    description="Resume Tailor Pro V3 — ATS 90+ target resume tailoring engine.",
 )
 
 app.add_middleware(
@@ -27,8 +27,8 @@ app.add_middleware(
 )
 
 
-@app.get("/health", tags=["System"])
-def health_check():
+@app.get("/health")
+def health():
     return {
         "status": "ok",
         "app": settings.APP_NAME,
@@ -37,12 +37,9 @@ def health_check():
 
 
 @app.get("/", include_in_schema=False)
-def public_home():
+def home():
     return FileResponse(PUBLIC_DIR / "index.html")
 
 
 app.mount("/static", StaticFiles(directory=PUBLIC_DIR), name="static")
-
-
-app.include_router(documents.router, prefix=settings.API_PREFIX)
-app.include_router(leads.router, prefix=settings.API_PREFIX)
+app.include_router(resumes.router, prefix=settings.API_PREFIX)

@@ -3,149 +3,147 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DocMatch AI — Tailor Documents to Job Descriptions</title>
+  <title>Resume Tailor Pro — ATS 90+ Target</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
   <header class="nav">
     <div class="brand">
-      <div class="brand-mark">D</div>
+      <div class="brand-mark">R</div>
       <div>
-        <strong>DocMatch AI</strong>
-        <span>JD-tailored documents</span>
+        <strong>Resume Tailor Pro</strong>
+        <span>ATS 90+ Target Engine</span>
       </div>
     </div>
     <nav>
-      <a href="#app">Try it</a>
-      <a href="#how">How it works</a>
-      <a href="#security">Privacy</a>
+      <a href="#tool">Tailor Resume</a>
+      <a href="#features">Features</a>
       <a href="/docs" target="_blank">API Docs</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
-      <div class="hero-copy">
-        <div class="pill">Upload document → paste JD → download tailored DOCX</div>
-        <h1>Match your resume or document to any job description in minutes.</h1>
+      <div>
+        <div class="pill">V3 upgraded engine</div>
+        <h1>Build resumes that target 90+ ATS alignment.</h1>
         <p>
-          Upload your document, paste a job description, and generate a tailored DOCX output with
-          matched requirements, ATS-focused keywords, improved wording, and clean formatting.
+          Upload a resume, paste the job description, and get a tailored DOCX with an ATS score,
+          matched requirements, missing gaps, optimized bullets, and a truthful 90+ action plan.
         </p>
-        <div class="hero-actions">
-          <a class="btn primary" href="#app">Start tailoring</a>
-          <a class="btn secondary" href="/docs" target="_blank">View API</a>
-        </div>
+        <a href="#tool" class="btn primary">Start tailoring</a>
       </div>
-
       <div class="hero-card">
-        <div class="mini-window">
-          <div class="dots"><i></i><i></i><i></i></div>
-          <div class="check-line"><span></span> Job description scanned</div>
-          <div class="check-line"><span></span> Resume text extracted</div>
-          <div class="check-line"><span></span> Requirements matched</div>
-          <div class="check-line"><span></span> DOCX ready to download</div>
-        </div>
+        <span>Target Score</span>
+        <strong>90+</strong>
+        <p>Truthful optimization only. No fake experience. No inflated promises.</p>
       </div>
     </section>
 
-    <section id="app" class="app-section">
-      <div class="section-heading">
-        <span>Live tool</span>
-        <h2>Generate your tailored output document</h2>
-        <p>Supported now: DOCX, TXT, and MD. PDF support can be added later with a PDF parser.</p>
+    <section id="tool" class="tool-section">
+      <div class="section-title">
+        <span>Live Tool</span>
+        <h2>Upload resume + paste job description</h2>
+        <p>Supports DOCX, PDF, TXT, and MD. DOCX or text-based PDF gives best results.</p>
       </div>
 
       <form id="tailorForm" class="tool-grid">
         <div class="panel">
-          <label for="jobDescription">Paste job description</label>
-          <textarea id="jobDescription" name="jobDescription" placeholder="Paste the full job description here..." required></textarea>
+          <label for="jobDescription">Job description</label>
+          <textarea id="jobDescription" placeholder="Paste the full job description here..." required></textarea>
 
-          <label for="targetRole">Target role title</label>
-          <input id="targetRole" name="targetRole" type="text" placeholder="Example: Data Engineer, Software Developer, Business Analyst" />
+          <label for="targetRole">Target role</label>
+          <input id="targetRole" placeholder="Example: Azure Data Engineer" />
         </div>
 
-        <div class="panel upload-panel">
-          <label for="documentFile">Upload your document</label>
-          <div class="drop-zone" id="dropZone">
-            <input id="documentFile" name="documentFile" type="file" accept=".docx,.txt,.md" required />
-            <div class="upload-icon">⬆</div>
-            <h3>Drop your file here or click to upload</h3>
-            <p>DOCX, TXT, or MD accepted</p>
+        <div class="panel">
+          <label for="resumeFile">Resume/document</label>
+          <div id="dropZone" class="drop-zone">
+            <input id="resumeFile" type="file" accept=".docx,.pdf,.txt,.md" required />
+            <div class="upload-icon">↑</div>
+            <h3>Drop resume here or click to upload</h3>
+            <p>DOCX, PDF, TXT, MD</p>
             <strong id="fileName">No file selected</strong>
           </div>
 
           <button id="generateBtn" class="btn primary full" type="submit">
-            Generate tailored document
+            Generate 90+ Target Resume
           </button>
 
           <div id="statusBox" class="status hidden"></div>
-
-          <div id="resultBox" class="result hidden">
-            <h3>Your tailored document is ready</h3>
-            <p>Download the DOCX file and review it before submitting anywhere.</p>
-            <a id="downloadLink" class="btn success" href="#" download>Download DOCX</a>
-          </div>
         </div>
       </form>
+
+      <section id="results" class="results hidden">
+        <div class="score-row">
+          <div class="score-circle">
+            <strong id="score">0</strong>
+            <span>ATS Score</span>
+          </div>
+          <div>
+            <h3 id="resultTitle">Tailored resume ready</h3>
+            <p id="scoreReason"></p>
+            <a id="downloadLink" class="btn success" href="#">Download DOCX</a>
+          </div>
+        </div>
+
+        <div class="dashboard">
+          <div class="card">
+            <h4>Matched must-haves</h4>
+            <div id="matchedMustHaves" class="tags"></div>
+          </div>
+
+          <div class="card">
+            <h4>Missing keywords</h4>
+            <ul id="missingKeywords"></ul>
+          </div>
+
+          <div class="card">
+            <h4>90+ action plan</h4>
+            <ul id="actionPlan"></ul>
+          </div>
+
+          <div class="card">
+            <h4>Recruiter warnings</h4>
+            <ul id="warnings"></ul>
+          </div>
+        </div>
+
+        <div class="preview">
+          <h4>Output preview</h4>
+          <pre id="preview"></pre>
+        </div>
+      </section>
     </section>
 
-    <section id="how" class="steps">
-      <div class="section-heading">
-        <span>Workflow</span>
-        <h2>How it works</h2>
+    <section id="features" class="features">
+      <div class="section-title">
+        <span>What changed</span>
+        <h2>Designed to improve real job applications</h2>
       </div>
-
-      <div class="cards">
-        <article>
-          <b>01</b>
-          <h3>Upload your document</h3>
-          <p>Add your resume, cover letter, or plain text document.</p>
-        </article>
-        <article>
-          <b>02</b>
-          <h3>Paste the job description</h3>
-          <p>The system reads the JD and identifies important skills, tools, and responsibilities.</p>
-        </article>
-        <article>
-          <b>03</b>
-          <h3>Download tailored DOCX</h3>
-          <p>Get a cleaner, requirement-matched output document for review and editing.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="features">
-      <div class="section-heading">
-        <span>Features</span>
-        <h2>Built for job seekers and professionals</h2>
-      </div>
-
       <div class="feature-grid">
-        <div>ATS keyword matching</div>
-        <div>JD requirement extraction</div>
-        <div>Tailored summary generation</div>
-        <div>Output DOCX download</div>
-        <div>Simple API backend</div>
-        <div>Public website-ready UI</div>
+        <div>ATS 90+ target scoring</div>
+        <div>OpenAI-powered rewriting</div>
+        <div>Truthful gap detection</div>
+        <div>Must-have requirement matching</div>
+        <div>Optimized bullets and summary</div>
+        <div>Downloadable DOCX output</div>
       </div>
     </section>
 
-    <section id="security" class="security">
-      <div>
-        <span>Privacy note</span>
-        <h2>You control what you upload.</h2>
-        <p>
-          This starter processes uploaded files through your backend. For production, add authentication,
-          database controls, file deletion policies, malware scanning, logging, and a privacy policy before public launch.
-        </p>
-      </div>
+    <section class="notice">
+      <h2>Important</h2>
+      <p>
+        This tool can improve resume alignment, but it cannot guarantee interviews or job offers.
+        It should never add fake experience. A real 90+ score is possible only when the candidate
+        genuinely matches the job requirements or can truthfully add missing evidence.
+      </p>
     </section>
   </main>
 
   <footer>
-    <strong>DocMatch AI</strong>
-    <span>Built with FastAPI + public web UI</span>
+    <strong>Resume Tailor Pro</strong>
+    <span>FastAPI + OpenAI-ready V3</span>
   </footer>
 
   <script src="/static/app.js"></script>

@@ -1,9 +1,17 @@
 services:
   - type: web
-    name: docmatch-ai
+    name: resume-tailor-pro-v3
     env: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: APP_ENV
         value: production
+      - key: AI_PROVIDER
+        value: mock
+      - key: OPENAI_MODEL
+        value: gpt-4.1-mini
+      - key: MAX_UPLOAD_MB
+        value: 8
+      - key: TARGET_ATS_SCORE
+        value: 90
