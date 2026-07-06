@@ -5,7 +5,6 @@ import re
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
-
 W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 NS = {"w": W_NS}
 
@@ -57,49 +56,35 @@ def extract_text_from_upload(filename: str, file_bytes: bytes) -> tuple[str, str
     raise ValueError("Unsupported file type. Upload DOCX, PDF, TXT, or MD.")
 
 
-def normalize_section_name(value: str) -> str:
-    cleaned = re.sub(r"[^a-zA-Z ]", " ", value).lower()
-    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+def normalize_line(line: str) -> str:
+    return re.sub(r"\s+", " ", line.strip())
 
-    mapping = {
-        "summary": "Professional Summary",
-        "professional summary": "Professional Summary",
-        "profile": "Professional Summary",
-        "career summary": "Professional Summary",
-        "objective": "Professional Summary",
-        "skills": "Skills",
-        "technical skills": "Skills",
-        "core skills": "Skills",
-        "technologies": "Skills",
-        "professional experience": "Experience",
-        "work experience": "Experience",
-        "experience": "Experience",
-        "employment history": "Experience",
-        "projects": "Projects",
+
+def detect_sections(text: str) -> list[str]:
+    known = {
+        "summary": "Summary",
+        "professional summary": "Summary",
+        "profile": "Summary",
+        "technical skills": "Technical Skills",
+        "skills": "Technical Skills",
+        "professional experience": "Professional Experience",
+        "work experience": "Professional Experience",
+        "experience": "Professional Experience",
         "project experience": "Projects",
+        "projects": "Projects",
+        "projects related": "Projects",
         "education": "Education",
         "certifications": "Certifications",
         "certification": "Certifications",
+        "interests": "Interests",
+        "languages": "Languages",
+        "achievements": "Achievements",
     }
 
-    return mapping.get(cleaned, value.strip())
-
-
-def detect_sections_from_text(text: str) -> list[str]:
     found = []
-    known = {
-        "summary", "professional summary", "profile", "career summary", "objective",
-        "skills", "technical skills", "core skills", "technologies",
-        "professional experience", "work experience", "experience", "employment history",
-        "projects", "education", "certifications", "certification"
-    }
-
-    for line in text.splitlines():
-        clean = re.sub(r"[^a-zA-Z ]", " ", line).lower()
-        clean = re.sub(r"\s+", " ", clean).strip()
-        if clean in known:
-            normalized = normalize_section_name(clean)
-            if normalized not in found:
-                found.append(normalized)
-
+    for raw in text.splitlines():
+        cleaned = re.sub(r"[^a-zA-Z ]", " ", raw).lower()
+        cleaned = re.sub(r"\s+", " ", cleaned).strip()
+        if cleaned in known and known[cleaned] not in found:
+            found.append(known[cleaned])
     return found

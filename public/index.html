@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Resume Tailor Pro V4 — Resume Intelligence</title>
+  <title>Resume Tailor Pro V5</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
   <header class="nav">
     <div class="brand">
-      <div class="brand-mark">R</div>
+      <div class="logo">R</div>
       <div>
-        <strong>Resume Tailor Pro V4</strong>
-        <span>Resume intelligence + layout preservation</span>
+        <strong>Resume Tailor Pro V5</strong>
+        <span>Master profile + ATS resume generator</span>
       </div>
     </div>
     <nav>
-      <a href="#tool">Tailor Resume</a>
-      <a href="#features">V4 Features</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#profile">Profile</a>
+      <a href="#generate">Generate</a>
       <a href="/docs" target="_blank">API Docs</a>
     </nav>
   </header>
@@ -25,134 +26,180 @@
   <main>
     <section class="hero">
       <div>
-        <div class="pill">V4 intelligent resume engine</div>
-        <h1>Tailor resumes while preserving the original DOCX layout.</h1>
+        <div class="pill">V5 product flow</div>
+        <h1>Create a master resume profile once. Tailor it for every job.</h1>
         <p>
-          Upload a resume, paste the job description, and get ATS scoring, layout analysis,
-          role-shortlisting words, truthful gap detection, and a tailored DOCX that tries to keep the original formatting.
+          Build or extract a structured career profile, save it in your dashboard, choose formatting,
+          paste a job description, and generate a stronger ATS-targeted resume with watermark download.
         </p>
-        <a href="#tool" class="btn primary">Start tailoring</a>
+        <a href="#profile" class="btn primary">Build profile</a>
       </div>
-      <div class="hero-card">
-        <span>Upgrade Focus</span>
-        <strong>Layout</strong>
-        <p>Detect sections, fonts, spacing signals, margins, estimated pages, and rewrite supported content in-place for DOCX uploads.</p>
+      <div class="flow-card">
+        <div>1. Extract / Build Profile</div>
+        <div>2. Save Dashboard Profile</div>
+        <div>3. Paste Job Description</div>
+        <div>4. Generate Watermarked DOCX</div>
       </div>
     </section>
 
-    <section id="tool" class="tool-section">
+    <section id="dashboard" class="section">
       <div class="section-title">
-        <span>Live V4 Tool</span>
-        <h2>Upload resume + paste job description</h2>
-        <p>DOCX gives best layout preservation. PDF/TXT/MD use clean generated DOCX fallback.</p>
+        <span>Dashboard</span>
+        <h2>Your saved master profile</h2>
+        <p>This MVP saves the profile in browser local storage. Production should connect login + database.</p>
       </div>
 
-      <form id="tailorForm" class="tool-grid">
+      <div class="dashboard-grid">
+        <div class="stat"><small>Saved profile</small><strong id="savedProfileStatus">No</strong></div>
+        <div class="stat"><small>Resume-only score</small><strong id="savedResumeScore">0</strong></div>
+        <div class="stat"><small>Last final ATS score</small><strong id="lastAtsScore">0</strong></div>
+        <div class="stat"><small>Generated resumes</small><strong id="historyCount">0</strong></div>
+      </div>
+
+      <div class="panel">
+        <h3>Generated resume history</h3>
+        <div id="historyList" class="history"></div>
+      </div>
+    </section>
+
+    <section id="profile" class="section">
+      <div class="section-title">
+        <span>Step 1</span>
+        <h2>Create or extract master profile</h2>
+        <p>Upload an existing resume to auto-fill sections. Then edit anything manually and save it.</p>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <h3>Extract from uploaded resume</h3>
+          <label for="resumeFile">Resume file</label>
+          <input id="resumeFile" type="file" accept=".docx,.pdf,.txt,.md" />
+          <button id="extractBtn" class="btn secondary" type="button">Extract profile</button>
+          <div id="extractStatus" class="status hidden"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Template settings</h3>
+          <div class="mini-grid">
+            <label>Font family<input id="fontFamily" value="Aptos" /></label>
+            <label>Body size<input id="bodyFontSize" type="number" step="0.5" value="10" /></label>
+            <label>Heading size<input id="headingFontSize" type="number" step="0.5" value="11" /></label>
+            <label>Name size<input id="nameFontSize" type="number" step="0.5" value="18" /></label>
+            <label>Margins<input id="marginInches" type="number" step="0.05" value="0.55" /></label>
+            <label>Page limit<input id="pageLimit" type="number" value="2" /></label>
+          </div>
+          <div class="checks">
+            <label><input id="showProjects" type="checkbox" checked /> Show projects</label>
+            <label><input id="showCertifications" type="checkbox" checked /> Show certifications</label>
+            <label><input id="showInterests" type="checkbox" /> Show interests</label>
+            <label><input id="showWatermark" type="checkbox" checked /> Add watermark</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-editor">
+        <div class="panel">
+          <h3>Contact</h3>
+          <div class="mini-grid">
+            <input id="fullName" placeholder="Full name" />
+            <input id="email" placeholder="Email" />
+            <input id="phone" placeholder="Phone" />
+            <input id="location" placeholder="Location" />
+            <input id="linkedin" placeholder="LinkedIn" />
+            <input id="github" placeholder="GitHub" />
+            <input id="portfolio" placeholder="Portfolio" />
+            <input id="targetTitles" placeholder="Target titles, comma separated" />
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Summary</h3>
+          <textarea id="summary" class="small" placeholder="Professional summary"></textarea>
+        </div>
+
+        <div class="panel">
+          <h3>Technical Skills</h3>
+          <textarea id="technicalSkills" class="small" placeholder="Python, SQL, Azure, Project Management, ..."></textarea>
+        </div>
+
+        <div class="panel">
+          <h3>Professional Experience</h3>
+          <input id="expTitle" placeholder="Job title" />
+          <input id="expCompany" placeholder="Company" />
+          <input id="expDates" placeholder="Dates, example: Jun 2024 - Present" />
+          <textarea id="expBullets" class="medium" placeholder="One bullet per line"></textarea>
+        </div>
+
+        <div class="panel">
+          <h3>Projects</h3>
+          <textarea id="projects" class="medium" placeholder="Project Name: description and bullets. Keep one project per paragraph."></textarea>
+        </div>
+
+        <div class="panel">
+          <h3>Education, Certifications, Interests</h3>
+          <textarea id="education" class="small" placeholder="Education, one line per item"></textarea>
+          <textarea id="certifications" class="small" placeholder="Certifications, one line per item"></textarea>
+          <textarea id="interests" class="small" placeholder="Interests, comma separated"></textarea>
+        </div>
+
+        <button id="saveProfileBtn" class="btn primary full" type="button">Save master profile to dashboard</button>
+      </div>
+    </section>
+
+    <section id="generate" class="section">
+      <div class="section-title">
+        <span>Step 2</span>
+        <h2>Generate ATS-targeted resume</h2>
+        <p>The saved profile is the source of truth. The AI will tailor it to the JD and your specific instructions.</p>
+      </div>
+
+      <div class="two-col">
         <div class="panel">
           <label for="jobDescription">Job description</label>
-          <textarea id="jobDescription" placeholder="Paste the full job description here..." required></textarea>
-
-          <label for="targetRole">Target role</label>
-          <input id="targetRole" placeholder="Example: Azure Data Engineer" />
+          <textarea id="jobDescription" placeholder="Paste full job description here..."></textarea>
         </div>
 
         <div class="panel">
-          <label for="resumeFile">Resume/document</label>
-          <div id="dropZone" class="drop-zone">
-            <input id="resumeFile" type="file" accept=".docx,.pdf,.txt,.md" required />
-            <div class="upload-icon">↑</div>
-            <h3>Drop resume here or click to upload</h3>
-            <p>DOCX, PDF, TXT, MD</p>
-            <strong id="fileName">No file selected</strong>
-          </div>
+          <label for="targetRole">Target role</label>
+          <input id="targetRole" placeholder="Example: Infrastructure Project Lead 1" />
 
-          <button id="generateBtn" class="btn primary full" type="submit">
-            Generate V4 Tailored Resume
-          </button>
+          <label for="customInstructions">Specific instructions for AI</label>
+          <textarea id="customInstructions" class="medium" placeholder="Example: Focus on project timelines, stakeholder communication, incident resolution, production support, and change implementation. Keep it two pages. Do not add certifications."></textarea>
 
-          <div id="statusBox" class="status hidden"></div>
+          <button id="generateBtn" class="btn primary full" type="button">Generate ATS Resume</button>
+          <div id="generateStatus" class="status hidden"></div>
         </div>
-      </form>
+      </div>
 
-      <section id="results" class="results hidden">
-        <div class="score-row">
-          <div class="score-card">
-            <small>Before</small>
-            <strong id="scoreBefore">0</strong>
-          </div>
-          <div class="score-card active">
-            <small>After</small>
-            <strong id="scoreAfter">0</strong>
-          </div>
-          <div>
-            <h3 id="resultTitle">Tailored resume ready</h3>
-            <p id="scoreReason"></p>
-            <a id="downloadLink" class="btn success" href="#">Download DOCX</a>
-          </div>
+      <div id="results" class="results hidden">
+        <div class="score-grid">
+          <div class="score"><small>Resume</small><strong id="scoreResume">0</strong></div>
+          <div class="score"><small>JD Match</small><strong id="scoreJD">0</strong></div>
+          <div class="score"><small>Keyword</small><strong id="scoreKeyword">0</strong></div>
+          <div class="score active"><small>Final ATS</small><strong id="scoreFinal">0</strong></div>
         </div>
 
-        <div class="profile-card">
-          <h4>Resume layout profile</h4>
-          <div id="layoutProfile" class="profile-grid"></div>
-          <ul id="layoutNotes"></ul>
-        </div>
+        <p id="scoreReason"></p>
+        <a id="downloadLink" class="btn success" href="#">Download Watermarked DOCX</a>
 
-        <div class="dashboard">
-          <div class="card">
-            <h4>Matched must-haves</h4>
-            <div id="matchedMustHaves" class="tags"></div>
-          </div>
-
-          <div class="card">
-            <h4>Missing keywords</h4>
-            <ul id="missingKeywords"></ul>
-          </div>
-
-          <div class="card">
-            <h4>Role-shortlisting words</h4>
-            <div id="shortlistWords" class="tags neutral"></div>
-          </div>
-
-          <div class="card">
-            <h4>90+ truthful action plan</h4>
-            <ul id="actionPlan"></ul>
-          </div>
+        <div class="result-grid">
+          <div class="card"><h4>Matched Keywords</h4><div id="matchedKeywords" class="tags"></div></div>
+          <div class="card"><h4>Missing Keywords</h4><ul id="missingKeywords"></ul></div>
+          <div class="card"><h4>90+ Action Plan</h4><ul id="actionPlan"></ul></div>
+          <div class="card"><h4>Recruiter Warnings</h4><ul id="warnings"></ul></div>
         </div>
 
         <div class="preview">
-          <h4>Output preview</h4>
-          <pre id="preview"></pre>
+          <h4>Resume preview</h4>
+          <pre id="previewText"></pre>
         </div>
-      </section>
-    </section>
-
-    <section id="features" class="features">
-      <div class="section-title">
-        <span>V4 features</span>
-        <h2>Built toward a real global resume platform</h2>
       </div>
-      <div class="feature-grid">
-        <div>DOCX in-place editing</div>
-        <div>Font and margin detection</div>
-        <div>Section structure detection</div>
-        <div>Before/after ATS score</div>
-        <div>Shortlisting word engine</div>
-        <div>Truthful gap detection</div>
-      </div>
-    </section>
-
-    <section class="notice">
-      <h2>Important product rule</h2>
-      <p>
-        This platform improves resume alignment, but it should not promise jobs or fabricate experience.
-        It targets 90+ only when the candidate’s real experience supports the job.
-      </p>
     </section>
   </main>
 
   <footer>
-    <strong>Resume Tailor Pro V4</strong>
-    <span>FastAPI + OpenAI-ready + DOCX layout preservation</span>
+    <strong>Resume Tailor Pro V5</strong>
+    <span>Master profile + dashboard + template settings + watermark download</span>
   </footer>
 
   <script src="/static/app.js"></script>

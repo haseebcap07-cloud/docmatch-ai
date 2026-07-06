@@ -1,186 +1,341 @@
-const form = document.getElementById("tailorForm");
-const fileInput = document.getElementById("resumeFile");
-const fileName = document.getElementById("fileName");
-const dropZone = document.getElementById("dropZone");
-const statusBox = document.getElementById("statusBox");
-const generateBtn = document.getElementById("generateBtn");
-const results = document.getElementById("results");
+const $ = (id) => document.getElementById(id);
 
-const scoreBefore = document.getElementById("scoreBefore");
-const scoreAfter = document.getElementById("scoreAfter");
-const resultTitle = document.getElementById("resultTitle");
-const scoreReason = document.getElementById("scoreReason");
-const downloadLink = document.getElementById("downloadLink");
-const layoutProfile = document.getElementById("layoutProfile");
-const layoutNotes = document.getElementById("layoutNotes");
-const matchedMustHaves = document.getElementById("matchedMustHaves");
-const missingKeywords = document.getElementById("missingKeywords");
-const shortlistWords = document.getElementById("shortlistWords");
-const actionPlan = document.getElementById("actionPlan");
-const preview = document.getElementById("preview");
+const STORAGE_PROFILE = "rtp_v5_master_profile";
+const STORAGE_HISTORY = "rtp_v5_history";
 
-fileInput.addEventListener("change", () => {
-  fileName.textContent = fileInput.files?.[0]?.name || "No file selected";
+const emptyProfile = () => ({
+  contact: { full_name: "", email: "", phone: "", location: "", linkedin: "", github: "", portfolio: "" },
+  target_titles: [],
+  summary: "",
+  technical_skills: [],
+  professional_experience: [],
+  projects: [],
+  education: [],
+  certifications: [],
+  interests: [],
+  languages: [],
+  achievements: [],
+  work_authorization: ""
 });
 
-["dragenter", "dragover"].forEach((name) => {
-  dropZone.addEventListener(name, (event) => {
-    event.preventDefault();
-    dropZone.classList.add("dragover");
-  });
+document.addEventListener("DOMContentLoaded", () => {
+  loadSavedProfileIntoUI();
+  refreshDashboard();
+
+  $("extractBtn").addEventListener("click", extractProfile);
+  $("saveProfileBtn").addEventListener("click", saveProfile);
+  $("generateBtn").addEventListener("click", generateResume);
 });
 
-["dragleave", "drop"].forEach((name) => {
-  dropZone.addEventListener(name, (event) => {
-    event.preventDefault();
-    dropZone.classList.remove("dragover");
-  });
-});
+function getTemplateSettings() {
+  return {
+    template_name: "ATS Modern",
+    font_family: $("fontFamily").value.trim() || "Aptos",
+    body_font_size: Number($("bodyFontSize").value || 10),
+    heading_font_size: Number($("headingFontSize").value || 11),
+    name_font_size: Number($("nameFontSize").value || 18),
+    margin_inches: Number($("marginInches").value || 0.55),
+    line_spacing: 1.0,
+    page_limit: Number($("pageLimit").value || 2),
+    show_projects: $("showProjects").checked,
+    show_certifications: $("showCertifications").checked,
+    show_interests: $("showInterests").checked,
+    show_watermark: $("showWatermark").checked,
+  };
+}
 
-dropZone.addEventListener("drop", (event) => {
-  const files = event.dataTransfer.files;
-  if (files.length) {
-    fileInput.files = files;
-    fileName.textContent = files[0].name;
+function uiToProfile() {
+  const profile = emptyProfile();
+
+  profile.contact.full_name = $("fullName").value.trim();
+  profile.contact.email = $("email").value.trim();
+  profile.contact.phone = $("phone").value.trim();
+  profile.contact.location = $("location").value.trim();
+  profile.contact.linkedin = $("linkedin").value.trim();
+  profile.contact.github = $("github").value.trim();
+  profile.contact.portfolio = $("portfolio").value.trim();
+
+  profile.target_titles = splitComma($("targetTitles").value);
+  profile.summary = $("summary").value.trim();
+  profile.technical_skills = splitSkills($("technicalSkills").value);
+
+  const expBullets = splitLines($("expBullets").value);
+  if ($("expTitle").value.trim() || $("expCompany").value.trim() || expBullets.length) {
+    const dates = $("expDates").value.trim();
+    const parts = dates.split(/\s+-\s+/);
+    profile.professional_experience.push({
+      title: $("expTitle").value.trim(),
+      company: $("expCompany").value.trim(),
+      location: "",
+      start_date: parts[0] || "",
+      end_date: parts[1] || "",
+      bullets: expBullets,
+    });
   }
-});
 
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
+  profile.projects = parseProjects($("projects").value);
+  profile.education = splitLines($("education").value).map(line => ({ degree: line, school: "", location: "", graduation: "" }));
+  profile.certifications = splitLines($("certifications").value);
+  profile.interests = splitComma($("interests").value);
 
-  const jd = document.getElementById("jobDescription").value.trim();
-  const role = document.getElementById("targetRole").value.trim();
-  const file = fileInput.files[0];
+  return profile;
+}
 
-  if (jd.length < 40) {
-    showStatus("Paste the full job description before generating.", true);
-    return;
-  }
+function profileToUI(profile) {
+  if (!profile) return;
 
+  $("fullName").value = profile.contact?.full_name || "";
+  $("email").value = profile.contact?.email || "";
+  $("phone").value = profile.contact?.phone || "";
+  $("location").value = profile.contact?.location || "";
+  $("linkedin").value = profile.contact?.linkedin || "";
+  $("github").value = profile.contact?.github || "";
+  $("portfolio").value = profile.contact?.portfolio || "";
+  $("targetTitles").value = (profile.target_titles || []).join(", ");
+
+  $("summary").value = profile.summary || "";
+  $("technicalSkills").value = (profile.technical_skills || []).join(", ");
+
+  const exp = (profile.professional_experience || [])[0] || {};
+  $("expTitle").value = exp.title || "";
+  $("expCompany").value = exp.company || "";
+  $("expDates").value = [exp.start_date || "", exp.end_date || ""].filter(Boolean).join(" - ");
+  $("expBullets").value = (exp.bullets || []).join("\n");
+
+  $("projects").value = (profile.projects || []).map(p => {
+    const bullets = (p.bullets || []).map(b => `- ${b}`).join("\n");
+    return [p.name, p.description, bullets].filter(Boolean).join("\n");
+  }).join("\n\n");
+
+  $("education").value = (profile.education || []).map(e => [e.degree, e.school, e.location, e.graduation].filter(Boolean).join(" | ")).join("\n");
+  $("certifications").value = (profile.certifications || []).join("\n");
+  $("interests").value = (profile.interests || []).join(", ");
+}
+
+async function extractProfile() {
+  const file = $("resumeFile").files[0];
   if (!file) {
-    showStatus("Upload a resume/document first.", true);
+    showStatus("extractStatus", "Upload a resume file first.", true);
     return;
   }
 
-  const formData = new FormData();
-  formData.append("job_description", jd);
-  formData.append("target_role", role);
-  formData.append("file", file);
+  const form = new FormData();
+  form.append("file", file);
 
-  results.classList.add("hidden");
-  showStatus("V4 is reading resume layout, analyzing JD fit, and preserving DOCX formatting when possible...", false);
-  generateBtn.disabled = true;
-  generateBtn.textContent = "Generating...";
+  showStatus("extractStatus", "Extracting profile sections from uploaded resume...", false);
 
   try {
-    const response = await fetch("/api/v1/resumes/tailor-file", {
+    const response = await fetch("/api/v1/profiles/extract", { method: "POST", body: form });
+    const data = await parseResponse(response);
+    profileToUI(data.profile);
+    localStorage.setItem("rtp_v5_last_resume_score", String(data.resume_only_score || 0));
+    showStatus("extractStatus", `Profile extracted. Resume-only score: ${data.resume_only_score}/100. Review and click Save.`, false);
+    refreshDashboard();
+  } catch (error) {
+    showStatus("extractStatus", error.message, true);
+  }
+}
+
+function saveProfile() {
+  const profile = uiToProfile();
+  localStorage.setItem(STORAGE_PROFILE, JSON.stringify(profile));
+  localStorage.setItem("rtp_v5_last_resume_score", estimateResumeOnly(profile));
+  refreshDashboard();
+  alert("Master profile saved to dashboard.");
+}
+
+async function generateResume() {
+  const saved = localStorage.getItem(STORAGE_PROFILE);
+  const profile = saved ? JSON.parse(saved) : uiToProfile();
+  const jd = $("jobDescription").value.trim();
+
+  if (jd.length < 40) {
+    showStatus("generateStatus", "Paste the full job description first.", true);
+    return;
+  }
+
+  if (!profile.summary && !profile.technical_skills.length && !profile.professional_experience.length) {
+    showStatus("generateStatus", "Your profile is too empty. Build or extract a profile first.", true);
+    return;
+  }
+
+  const payload = {
+    profile,
+    job_description: jd,
+    target_role: $("targetRole").value.trim(),
+    custom_instructions: $("customInstructions").value.trim(),
+    template_settings: getTemplateSettings(),
+  };
+
+  $("generateBtn").disabled = true;
+  $("generateBtn").textContent = "Generating...";
+  showStatus("generateStatus", "Generating ATS-targeted resume from your saved master profile...", false);
+
+  try {
+    const response = await fetch("/api/v1/resumes/generate", {
       method: "POST",
-      body: formData,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
 
-    const raw = await response.text();
-    let data;
-
-    try {
-      data = JSON.parse(raw);
-    } catch {
-      throw new Error(raw || "Server returned a non-JSON response. Check Render logs.");
-    }
-
-    if (!response.ok) {
-      throw new Error(data.detail || data.error || "Generation failed.");
-    }
-
+    const data = await parseResponse(response);
     renderResults(data);
-    statusBox.classList.add("hidden");
-    results.classList.remove("hidden");
-    results.scrollIntoView({ behavior: "smooth", block: "start" });
+    saveHistory(data, payload.target_role);
+    refreshDashboard();
+    $("results").classList.remove("hidden");
+    $("generateStatus").classList.add("hidden");
+    $("results").scrollIntoView({ behavior: "smooth" });
   } catch (error) {
-    showStatus(error.message, true);
+    showStatus("generateStatus", error.message, true);
   } finally {
-    generateBtn.disabled = false;
-    generateBtn.textContent = "Generate V4 Tailored Resume";
+    $("generateBtn").disabled = false;
+    $("generateBtn").textContent = "Generate ATS Resume";
   }
-});
+}
 
 function renderResults(data) {
-  scoreBefore.textContent = data.ats_score_before || 0;
-  scoreAfter.textContent = data.ats_score_after || 0;
-  resultTitle.textContent = `${data.job_title_guess || "Target Role"} — ${data.score_gap_to_90 === 0 ? "90+ Target Met" : "Needs " + data.score_gap_to_90 + " points"}`;
-  scoreReason.textContent = data.score_reason || "";
-  downloadLink.href = data.download_url || "#";
-  downloadLink.download = data.filename || "tailored_resume_v4.docx";
-
-  renderProfile(data.resume_profile || {});
-  renderList(layoutNotes, (data.resume_profile && data.resume_profile.layout_notes) || []);
-  renderTags(matchedMustHaves, data.matched_must_haves || data.matched_keywords || []);
-  renderList(missingKeywords, data.missing_keywords || []);
-  renderTags(shortlistWords, data.role_shortlist_words || []);
-  renderList(actionPlan, data.truthful_90_plus_actions || []);
-  preview.textContent = data.preview_text || "";
+  const b = data.score_breakdown || {};
+  $("scoreResume").textContent = b.resume_only_score || 0;
+  $("scoreJD").textContent = b.jd_match_score || 0;
+  $("scoreKeyword").textContent = b.keyword_score || 0;
+  $("scoreFinal").textContent = b.final_ats_estimate || 0;
+  $("scoreReason").textContent = data.score_reason || "";
+  $("downloadLink").href = data.download_url || "#";
+  $("downloadLink").download = data.filename || "resume_tailor_pro_v5.docx";
+  renderTags("matchedKeywords", data.matched_keywords || []);
+  renderList("missingKeywords", data.missing_keywords || []);
+  renderList("actionPlan", data.truthful_90_plus_actions || []);
+  renderList("warnings", data.recruiter_warnings || []);
+  $("previewText").textContent = data.preview_text || "";
 }
 
-function renderProfile(profile) {
-  layoutProfile.innerHTML = "";
-  const items = [
-    ["Source", profile.source_type || "unknown"],
-    ["Mode", profile.preserve_mode || "unknown"],
-    ["Pages", profile.estimated_page_count || 1],
-    ["Paragraphs", profile.paragraph_count || 0],
-    ["Words", profile.word_count || 0],
-    ["Sections", (profile.detected_sections || []).join(", ") || "Not detected"],
-    ["Fonts", (profile.detected_fonts || []).join(", ") || "Inherited/unknown"],
-    ["Font sizes", (profile.detected_font_sizes || []).join(", ") || "Inherited/unknown"],
-  ];
+function refreshDashboard() {
+  const profile = localStorage.getItem(STORAGE_PROFILE);
+  const history = getHistory();
+  $("savedProfileStatus").textContent = profile ? "Yes" : "No";
+  $("savedResumeScore").textContent = localStorage.getItem("rtp_v5_last_resume_score") || "0";
+  $("lastAtsScore").textContent = history[0]?.score || "0";
+  $("historyCount").textContent = history.length;
 
-  items.forEach(([label, value]) => {
+  const list = $("historyList");
+  list.innerHTML = "";
+  if (!history.length) {
+    list.innerHTML = `<div class="history-item">No generated resumes yet.</div>`;
+    return;
+  }
+  history.slice(0, 8).forEach(item => {
     const div = document.createElement("div");
-    div.innerHTML = `<small>${escapeHtml(label)}</small><strong>${escapeHtml(String(value))}</strong>`;
-    layoutProfile.appendChild(div);
+    div.className = "history-item";
+    div.innerHTML = `<strong>${escapeHtml(item.role || "Target Role")}</strong><br><span>Final ATS: ${item.score}/100 · ${escapeHtml(item.date)}</span>`;
+    list.appendChild(div);
   });
 }
 
-function renderTags(container, items) {
-  container.innerHTML = "";
+function loadSavedProfileIntoUI() {
+  const saved = localStorage.getItem(STORAGE_PROFILE);
+  if (saved) profileToUI(JSON.parse(saved));
+}
+
+function saveHistory(data, role) {
+  const history = getHistory();
+  history.unshift({
+    role: role || "Target Role",
+    score: data.score_breakdown?.final_ats_estimate || 0,
+    filename: data.filename,
+    date: new Date().toLocaleString(),
+  });
+  localStorage.setItem(STORAGE_HISTORY, JSON.stringify(history.slice(0, 25)));
+}
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_HISTORY) || "[]"); }
+  catch { return []; }
+}
+
+async function parseResponse(response) {
+  const raw = await response.text();
+  let data;
+  try { data = JSON.parse(raw); }
+  catch { throw new Error(raw || "Server returned a non-JSON response. Check logs."); }
+  if (!response.ok) throw new Error(data.detail || data.error || "Request failed.");
+  return data;
+}
+
+function showStatus(id, message, error) {
+  const box = $(id);
+  box.textContent = message;
+  box.classList.remove("hidden");
+  box.style.background = error ? "#ffecec" : "#fff8e6";
+  box.style.borderColor = error ? "#ffb3b3" : "#ffe1a2";
+}
+
+function splitLines(value) {
+  return value.split(/\n+/).map(x => x.replace(/^[•\-*–—]\s*/, "").trim()).filter(Boolean);
+}
+
+function splitComma(value) {
+  return value.split(/,|;/).map(x => x.trim()).filter(Boolean);
+}
+
+function splitSkills(value) {
+  return value.split(/,|;|\n/).map(x => x.trim()).filter(Boolean);
+}
+
+function parseProjects(value) {
+  const blocks = value.split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
+  return blocks.map(block => {
+    const lines = block.split(/\n/).map(x => x.trim()).filter(Boolean);
+    return {
+      name: lines[0] || "Project",
+      description: lines.length > 1 && !lines[1].startsWith("-") ? lines[1] : "",
+      technologies: [],
+      bullets: lines.slice(1).filter(x => x.startsWith("-") || x.startsWith("•")).map(x => x.replace(/^[•\-*–—]\s*/, "")),
+    };
+  });
+}
+
+function renderTags(id, items) {
+  const box = $(id);
+  box.innerHTML = "";
   if (!items.length) {
-    const span = document.createElement("span");
-    span.textContent = "No strong matches detected";
-    container.appendChild(span);
+    box.innerHTML = "<span>No matches detected</span>";
     return;
   }
-
-  items.slice(0, 35).forEach((item) => {
+  items.slice(0, 35).forEach(item => {
     const span = document.createElement("span");
     span.textContent = item;
-    container.appendChild(span);
+    box.appendChild(span);
   });
 }
 
-function renderList(container, items) {
-  container.innerHTML = "";
+function renderList(id, items) {
+  const list = $(id);
+  list.innerHTML = "";
   if (!items.length) {
-    const li = document.createElement("li");
-    li.textContent = "No major issue detected.";
-    container.appendChild(li);
+    list.innerHTML = "<li>No major issue detected.</li>";
     return;
   }
-
-  items.slice(0, 12).forEach((item) => {
+  items.slice(0, 12).forEach(item => {
     const li = document.createElement("li");
     li.textContent = item;
-    container.appendChild(li);
+    list.appendChild(li);
   });
 }
 
-function showStatus(message, isError) {
-  statusBox.textContent = message;
-  statusBox.classList.remove("hidden");
-  statusBox.style.background = isError ? "#ffecec" : "#fff8e6";
-  statusBox.style.borderColor = isError ? "#ffb3b3" : "#ffe1a2";
+function estimateResumeOnly(profile) {
+  let score = 0;
+  if (profile.contact.full_name) score += 10;
+  if (profile.contact.email || profile.contact.phone) score += 10;
+  if (profile.summary && profile.summary.split(/\s+/).length >= 25) score += 15;
+  if (profile.technical_skills.length >= 10) score += 20;
+  if (profile.professional_experience.length) score += 20;
+  if ((profile.professional_experience[0]?.bullets || []).length >= 5) score += 15;
+  if (profile.education.length) score += 10;
+  return Math.min(100, Math.max(20, score));
 }
 
 function escapeHtml(value) {
-  return value.replace(/[&<>"']/g, (char) => ({
+  return String(value).replace(/[&<>"']/g, char => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",

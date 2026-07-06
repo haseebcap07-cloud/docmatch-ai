@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
-from app.routers import resumes
+from app.routers import profiles, resumes
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -14,8 +14,8 @@ PUBLIC_DIR = BASE_DIR / "public"
 
 app = FastAPI(
     title=settings.APP_NAME,
-    version="4.0.0",
-    description="Resume Tailor Pro V4 — resume intelligence, ATS targeting, and DOCX layout preservation.",
+    version="5.0.0",
+    description="Resume Tailor Pro V5 — master profile, dashboard, template settings, ATS scoring, and watermark DOCX downloads.",
 )
 
 app.add_middleware(
@@ -53,4 +53,5 @@ def home():
 
 
 app.mount("/static", StaticFiles(directory=PUBLIC_DIR), name="static")
+app.include_router(profiles.router, prefix=settings.API_PREFIX)
 app.include_router(resumes.router, prefix=settings.API_PREFIX)

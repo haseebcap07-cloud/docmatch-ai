@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "Resume Tailor Pro V4"
+    APP_NAME: str = "Resume Tailor Pro V5"
     APP_ENV: str = "development"
     API_PREFIX: str = "/api/v1"
     ALLOWED_ORIGINS: str = "http://localhost:8000,http://127.0.0.1:8000,http://localhost:3000,http://localhost:5173"
@@ -13,7 +13,7 @@ class Settings(BaseSettings):
 
     MAX_UPLOAD_MB: int = 10
     TARGET_ATS_SCORE: int = 90
-    PRESERVE_DOCX_LAYOUT: bool = True
+    FREE_DOWNLOAD_WATERMARK: bool = True
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

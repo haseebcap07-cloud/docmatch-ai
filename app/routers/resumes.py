@@ -2,103 +2,65 @@ from pathlib import Path
 import tempfile
 import uuid
 
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
+from app.schemas import GenerateResumeRequest, GenerateResumeResponse
 from app.core.config import settings
-from app.schemas import TailorTextRequest, TailorResponse
-from app.services.extractors import extract_text_from_upload
-from app.services.layout_analyzer import analyze_resume_layout, analyze_plain_layout
 from app.services.ai_engine import engine
-from app.services.docx_builder import create_generated_docx, clean_filename, DOCX_MIME
-from app.services.docx_preserver import preserve_docx_layout
+from app.services.docx_generator import create_resume_docx, clean_filename, DOCX_MIME
 
 
-router = APIRouter(prefix="/resumes", tags=["Resume Intelligence"])
+router = APIRouter(prefix="/resumes", tags=["Resume Generation"])
 
 
 def _output_dir() -> Path:
-    folder = Path(tempfile.gettempdir()) / "resume_tailor_pro_v4_outputs"
+    folder = Path(tempfile.gettempdir()) / "resume_tailor_pro_v5_outputs"
     folder.mkdir(parents=True, exist_ok=True)
     return folder
 
 
-def _package_result(result: dict, filename: str | None = None) -> dict:
-    result["status"] = "success"
-    result["preview_text"] = result.get("final_resume_text", "")[:3500]
+@router.post("/generate", response_model=GenerateResumeResponse)
+def generate_resume(payload: GenerateResumeRequest):
+    profile = payload.profile
 
-    if filename:
-        result["document_id"] = filename
-        result["download_url"] = f"/api/v1/resumes/download/{filename}"
-        result["filename"] = filename
-    else:
-        result["document_id"] = None
-        result["download_url"] = None
-        result["filename"] = None
+    if not profile.summary and not profile.professional_experience and not profile.technical_skills:
+        raise HTTPException(status_code=400, detail="Profile is too empty. Add resume details or extract from uploaded resume first.")
 
-    return result
-
-
-@router.post("/tailor-text", response_model=TailorResponse)
-def tailor_text(payload: TailorTextRequest):
-    profile = analyze_plain_layout("text", payload.resume_text)
-    result = engine.tailor(
+    ai = engine.tailor(
+        profile=profile,
         job_description=payload.job_description,
-        resume_text=payload.resume_text,
         target_role=payload.target_role,
-        profile=profile,
-    )
-    return _package_result(result)
-
-
-@router.post("/tailor-file", response_model=TailorResponse)
-async def tailor_file(
-    job_description: str = Form(...),
-    target_role: str = Form(""),
-    file: UploadFile = File(...),
-):
-    if len(job_description.strip()) < 40:
-        raise HTTPException(status_code=400, detail="Paste a full job description with at least 40 characters.")
-
-    file_bytes = await file.read()
-
-    if len(file_bytes) > settings.max_upload_bytes:
-        raise HTTPException(status_code=400, detail=f"File is too large. Max upload size is {settings.MAX_UPLOAD_MB} MB.")
-
-    try:
-        resume_text, source_type = extract_text_from_upload(file.filename or "resume", file_bytes)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    if len(resume_text.strip()) < 40:
-        raise HTTPException(status_code=400, detail="Could not extract enough resume text. Try DOCX or TXT.")
-
-    profile = analyze_resume_layout(file_bytes, source_type, resume_text)
-
-    result = engine.tailor(
-        job_description=job_description,
-        resume_text=resume_text,
-        target_role=target_role or None,
-        profile=profile,
+        custom_instructions=payload.custom_instructions,
+        template=payload.template_settings,
     )
 
     file_id = str(uuid.uuid4())[:8]
-    original_stem = Path(file.filename or "resume").stem
-    safe_name = clean_filename(f"tailored_v4_{original_stem}_{file_id}.docx")
-    output_path = _output_dir() / safe_name
+    name_part = clean_filename(profile.contact.full_name or "resume")
+    filename = clean_filename(f"resume_tailor_pro_v5_{name_part}_{file_id}.docx")
+    output_path = _output_dir() / filename
 
-    if source_type == "docx" and settings.PRESERVE_DOCX_LAYOUT:
-        preservation = preserve_docx_layout(file_bytes, output_path, result)
-        result["resume_profile"]["layout_notes"].extend(preservation.get("notes", []))
-        result["resume_profile"]["preserve_mode"] = preservation.get("mode", result["resume_profile"]["preserve_mode"])
-    else:
-        create_generated_docx(
-            output_path=output_path,
-            title="ATS-Targeted Tailored Resume",
-            content=result["final_resume_text"],
-        )
+    watermark = bool(payload.template_settings.show_watermark and settings.FREE_DOWNLOAD_WATERMARK)
+    preview = create_resume_docx(output_path, profile, ai, payload.template_settings, watermark=watermark)
 
-    return _package_result(result, safe_name)
+    breakdown = ai["score_breakdown"]
+
+    return GenerateResumeResponse(
+        document_id=filename,
+        filename=filename,
+        download_url=f"/api/v1/resumes/download/{filename}",
+        score_breakdown=breakdown,
+        score_reason=ai["score_reason"],
+        matched_keywords=ai["matched_keywords"],
+        missing_keywords=ai["missing_keywords"],
+        weak_requirements=ai["weak_requirements"],
+        truthful_90_plus_actions=ai["truthful_90_plus_actions"],
+        recruiter_warnings=ai["recruiter_warnings"],
+        generated_summary=ai["generated_summary"],
+        generated_skills=ai["generated_skills"],
+        generated_bullets=ai["generated_bullets"],
+        preview_text=preview[:5000],
+    )
 
 
 @router.get("/download/{document_id}")
