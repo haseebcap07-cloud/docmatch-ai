@@ -23,7 +23,7 @@ def extract_keywords(text: str, limit: int = 60) -> list[str]:
         if term in lowered:
             found.append(term)
 
-    caps = re.findall(r"\\b[A-Z][A-Za-z0-9+#.\\-/]{2,}\\b", text)
+    caps = re.findall(r"\b[A-Z][A-Za-z0-9+#./-]{2,}\b", text)
     for token in caps:
         if token.lower() not in [x.lower() for x in found]:
             found.append(token)
