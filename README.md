@@ -1,36 +1,56 @@
-# Resume Tailor Pro V7 All-in-One
+# Resume Tailor Pro V7.1 — Frontend UX Upgrade
 
-This package includes the full V6 Adaptive Engine plus the new V7 ATS Recruiter Workflow Engine.
+This package keeps the V7 backend/intelligence layer and upgrades the frontend experience.
 
-## Included from V6
+## Frontend fixes added
 
-- Resume role classification
-- Job description role classification
-- Role-family alignment detection
-- Role-specific playbooks
-- JD must-have analyzer
-- Evidence mapping
-- Unsupported requirement detection
-- Adaptive AI prompt engine
-- Human-tone validator
-- Generic AI phrase warnings
-- Truth caps for ATS score
+- Dark mode / light mode toggle
+- Editor starts empty on browser refresh
+- Saved profile no longer auto-loads into fields
+- New "Load Saved Profile" button
+- New "Clear Screen" button
+- New "Clear Profile Fields" button
+- New "Reset Saved Data" button
+- Uploading a new file clears old extracted resume fields first
+- Dropdown template settings:
+  - Font family
+  - Body font size
+  - Heading size
+  - Name size
+  - Margins
+  - Page target
+- Professional glass-style UI
+- Responsive layout
+- Live word counts
+- Live skills count
+- Live bullet count
+- Dashboard progress meters
+- Improved result cards:
+  - Adaptive Analysis
+  - Change Log
+  - Final Result
+  - Recruiter Warnings
+  - 90+ Action Plan
+- Cleaner user-requested additions/replacements field
 
-## New in V7
+## Important behavior change
 
-- Baseline ATS score before generation
-- Gap analysis split into missing hard skills, semantic gaps, and unsupported requirements
-- Semantic mapping, such as MongoDB → NoSQL, PostgreSQL → Relational Databases, Jenkins → CI/CD, AWS/Azure/GCP → Cloud Experience
-- Summary rules with 110-120 word target and no generic filler phrases
-- Bullet-count target of 7-8 bullets per employer/client where enough source evidence exists
-- Change Log for semantic mappings, keyword rephrasing, user-requested additions/replacements, unsupported JD skills not added, and title/structure adjustments
-- Post-optimization ATS score and score improvement summary
-- User-requested additions field in the UI
+The page no longer does this on refresh:
+
+```text
+load previous resume into Summary / Technical Skills / Experience automatically
+```
+
+Now it starts clean. Saved profile remains in browser storage, but the user must click:
+
+```text
+Load Saved Profile
+```
 
 ## Run locally
 
 ```powershell
-cd S:\jd_tailoring_api_starter\resume_tailor_pro_v7_all_in_one
+cd S:\jd_tailoring_api_starter\resume_tailor_pro_v7_1_frontend_ux
 
 python -m venv venv
 .\venv\Scripts\Activate.ps1
@@ -48,46 +68,13 @@ Open:
 http://127.0.0.1:8000
 ```
 
-## Enable real AI
-
-```text
-AI_PROVIDER=openai
-OPENAI_API_KEY=your_real_openai_api_key_here
-OPENAI_MODEL=gpt-4.1-mini
-```
-
-## Deploy to Render
-
-Build command:
-
-```bash
-pip install -r requirements.txt
-```
-
-Start command:
-
-```bash
-python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
-```
-
-Environment variables:
-
-```text
-AI_PROVIDER=openai
-OPENAI_API_KEY=your_real_openai_api_key_here
-OPENAI_MODEL=gpt-4.1-mini
-MAX_UPLOAD_MB=10
-TARGET_ATS_SCORE=90
-FREE_DOWNLOAD_WATERMARK=true
-```
-
 ## Copy into existing repo
 
 ```powershell
-$V7 = "S:\jd_tailoring_api_starter\resume_tailor_pro_v7_all_in_one"
+$V71 = "S:\jd_tailoring_api_starter\resume_tailor_pro_v7_1_frontend_ux"
 $OLD = "S:\jd_tailoring_api_starter\jd_tailoring_public_app"
 
-robocopy $V7 $OLD /MIR /XD .git venv .venv __pycache__ /XF .env *.pyc *.log
+robocopy $V71 $OLD /MIR /XD .git venv .venv __pycache__ /XF .env *.pyc *.log
 ```
 
 Then:
@@ -95,19 +82,29 @@ Then:
 ```powershell
 cd S:\jd_tailoring_api_starter\jd_tailoring_public_app
 
-python -m py_compile app\services\adaptive_ai_engine.py
-python -m py_compile app\services\ats_engine.py
-python -m py_compile app\services\evidence_mapper.py
-python -m py_compile app\services\semantic_mapper.py
-python -m py_compile app\services\change_log_builder.py
-
 git add .
-git commit -m "Upgrade to Resume Tailor Pro V7 all-in-one ATS recruiter workflow"
+git commit -m "Upgrade frontend UX for Resume Tailor Pro V7.1"
 git push
 ```
 
-Then Render:
+Render:
 
 ```text
 Manual Deploy → Deploy latest commit
+```
+
+## Note about poor preview output
+
+If the preview says things like:
+
+```text
+using verified experience from the master profile
+```
+
+that means the backend is likely running in mock mode or fallback mode. For stronger output, set:
+
+```text
+AI_PROVIDER=openai
+OPENAI_API_KEY=your_real_openai_api_key_here
+OPENAI_MODEL=gpt-4.1-mini
 ```

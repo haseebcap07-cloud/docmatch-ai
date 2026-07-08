@@ -1,173 +1,332 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Resume Tailor Pro V7</title>
+  <title>Resume Tailor Pro V7.1</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
-  <header class="nav">
+  <header class="topbar">
     <div class="brand">
-      <div class="logo">R</div>
+      <div class="logo-mark">R</div>
       <div>
-        <strong>Resume Tailor Pro V7</strong>
-        <span>Master profile + ATS resume generator</span>
+        <strong>Resume Tailor Pro</strong>
+        <span>V7.1 ATS Recruiter Workflow</span>
       </div>
     </div>
-    <nav>
+
+    <nav class="nav-links">
       <a href="#dashboard">Dashboard</a>
       <a href="#profile">Profile</a>
       <a href="#generate">Generate</a>
-      <a href="/docs" target="_blank">API Docs</a>
+      <a href="/docs" target="_blank">API</a>
     </nav>
+
+    <div class="top-actions">
+      <button id="themeToggle" class="icon-btn" type="button" aria-label="Toggle theme">🌙</button>
+      <button id="clearAllBtn" class="ghost-btn" type="button">Clear Screen</button>
+    </div>
   </header>
 
   <main>
     <section class="hero">
-      <div>
-        <div class="pill">V7 ATS recruiter workflow</div>
-        <h1>Create a master resume profile once. Tailor it for every job.</h1>
+      <div class="hero-copy">
+        <div class="eyebrow">Adaptive ATS + Recruiter Intelligence</div>
+        <h1>Build a stronger resume for every role without losing truthfulness.</h1>
         <p>
-          Build or extract a structured career profile, save it in your dashboard, choose formatting,
-          paste a job description, and generate a stronger ATS-targeted resume with watermark download.
+          Extract a resume, review the profile, choose a professional template, paste a job description,
+          and generate a role-specific resume with baseline scoring, gap analysis, change log, and post-score.
         </p>
-        <a href="#profile" class="btn primary">Build profile</a>
+
+        <div class="hero-actions">
+          <a href="#profile" class="btn primary">Start Profile</a>
+          <a href="#generate" class="btn secondary">Generate Resume</a>
+        </div>
       </div>
-      <div class="flow-card">
-        <div>1. Extract / Build Profile</div>
-        <div>2. Save Dashboard Profile</div>
-        <div>3. Paste Job Description</div>
-        <div>4. Generate Watermarked DOCX</div>
-      </div>
+
+      <aside class="insight-panel">
+        <div class="workflow-step active">
+          <span>01</span>
+          <div>
+            <strong>Extract or Build</strong>
+            <small>Resume sections become a clean profile.</small>
+          </div>
+        </div>
+        <div class="workflow-step">
+          <span>02</span>
+          <div>
+            <strong>Match JD</strong>
+            <small>Role family, must-haves, gaps, mappings.</small>
+          </div>
+        </div>
+        <div class="workflow-step">
+          <span>03</span>
+          <div>
+            <strong>Generate</strong>
+            <small>ATS-ready resume + change log.</small>
+          </div>
+        </div>
+      </aside>
     </section>
 
     <section id="dashboard" class="section">
-      <div class="section-title">
-        <span>Dashboard</span>
-        <h2>Your saved master profile</h2>
-        <p>This MVP saves the profile in browser local storage. Production should connect login + database.</p>
+      <div class="section-header">
+        <div>
+          <span class="section-label">Dashboard</span>
+          <h2>Session overview</h2>
+          <p>
+            The editor now starts empty on refresh. Saved profile data stays in browser storage, but it will load only when you click Load Saved Profile.
+          </p>
+        </div>
+        <div class="header-actions">
+          <button id="loadSavedProfileBtn" class="btn secondary" type="button">Load Saved Profile</button>
+          <button id="resetDashboardBtn" class="btn danger-soft" type="button">Reset Saved Data</button>
+        </div>
       </div>
 
-      <div class="dashboard-grid">
-        <div class="stat"><small>Saved profile</small><strong id="savedProfileStatus">No</strong></div>
-        <div class="stat"><small>Resume-only score</small><strong id="savedResumeScore">0</strong></div>
-        <div class="stat"><small>Last final ATS score</small><strong id="lastAtsScore">0</strong></div>
-        <div class="stat"><small>Generated resumes</small><strong id="historyCount">0</strong></div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <small>Saved Profile</small>
+          <strong id="savedProfileStatus">No</strong>
+          <div class="meter"><span id="profileMeter"></span></div>
+        </div>
+        <div class="metric-card">
+          <small>Resume Quality</small>
+          <strong><span id="savedResumeScore">0</span>/100</strong>
+          <div class="meter"><span id="resumeMeter"></span></div>
+        </div>
+        <div class="metric-card">
+          <small>Last Final ATS</small>
+          <strong><span id="lastAtsScore">0</span>/100</strong>
+          <div class="meter"><span id="atsMeter"></span></div>
+        </div>
+        <div class="metric-card">
+          <small>Generated Resumes</small>
+          <strong id="historyCount">0</strong>
+          <div class="meter"><span id="historyMeter"></span></div>
+        </div>
       </div>
 
-      <div class="panel">
-        <h3>Generated resume history</h3>
-        <div id="historyList" class="history"></div>
+      <div class="glass-panel">
+        <div class="panel-title">
+          <h3>Resume history</h3>
+          <small>Stored locally for this browser session.</small>
+        </div>
+        <div id="historyList" class="history-list"></div>
       </div>
     </section>
 
     <section id="profile" class="section">
-      <div class="section-title">
-        <span>Step 1</span>
-        <h2>Create or extract master profile</h2>
-        <p>Upload an existing resume to auto-fill sections. Then edit anything manually and save it.</p>
+      <div class="section-header">
+        <div>
+          <span class="section-label">Step 1</span>
+          <h2>Create or extract master profile</h2>
+          <p>
+            Uploading a new resume clears old extracted fields first, then fills only what is found from the new file.
+          </p>
+        </div>
       </div>
 
-      <div class="two-col">
-        <div class="panel">
-          <h3>Extract from uploaded resume</h3>
+      <div class="grid-2">
+        <div class="glass-panel">
+          <div class="panel-title">
+            <h3>Extract from resume</h3>
+            <small>DOCX, PDF, TXT, or MD</small>
+          </div>
           <label for="resumeFile">Resume file</label>
           <input id="resumeFile" type="file" accept=".docx,.pdf,.txt,.md" />
-          <button id="extractBtn" class="btn secondary" type="button">Extract profile</button>
+          <div class="button-row">
+            <button id="extractBtn" class="btn primary" type="button">Extract Profile</button>
+            <button id="clearProfileBtn" class="btn secondary" type="button">Clear Profile Fields</button>
+          </div>
           <div id="extractStatus" class="status hidden"></div>
         </div>
 
-        <div class="panel">
-          <h3>Template settings</h3>
-          <div class="mini-grid">
-            <label>Font family<input id="fontFamily" value="Aptos" /></label>
-            <label>Body size<input id="bodyFontSize" type="number" step="0.5" value="10" /></label>
-            <label>Heading size<input id="headingFontSize" type="number" step="0.5" value="11" /></label>
-            <label>Name size<input id="nameFontSize" type="number" step="0.5" value="18" /></label>
-            <label>Margins<input id="marginInches" type="number" step="0.05" value="0.55" /></label>
-            <label>Page limit<input id="pageLimit" type="number" value="2" /></label>
+        <div class="glass-panel">
+          <div class="panel-title">
+            <h3>Template settings</h3>
+            <small>Dropdowns prevent inconsistent formatting.</small>
           </div>
-          <div class="checks">
-            <label><input id="showProjects" type="checkbox" checked /> Show projects</label>
-            <label><input id="showCertifications" type="checkbox" checked /> Show certifications</label>
-            <label><input id="showInterests" type="checkbox" /> Show interests</label>
-            <label><input id="showWatermark" type="checkbox" checked /> Add watermark</label>
+
+          <div class="form-grid">
+            <label>
+              Font family
+              <select id="fontFamily">
+                <option value="Aptos">Aptos</option>
+                <option value="Calibri">Calibri</option>
+                <option value="Arial">Arial</option>
+                <option value="Helvetica">Helvetica</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Georgia">Georgia</option>
+              </select>
+            </label>
+
+            <label>
+              Body font size
+              <select id="bodyFontSize">
+                <option value="9">9</option>
+                <option value="9.5">9.5</option>
+                <option value="10" selected>10</option>
+                <option value="10.5">10.5</option>
+                <option value="11">11</option>
+              </select>
+            </label>
+
+            <label>
+              Heading size
+              <select id="headingFontSize">
+                <option value="10.5">10.5</option>
+                <option value="11" selected>11</option>
+                <option value="11.5">11.5</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+              </select>
+            </label>
+
+            <label>
+              Name size
+              <select id="nameFontSize">
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18" selected>18</option>
+                <option value="19">19</option>
+                <option value="20">20</option>
+              </select>
+            </label>
+
+            <label>
+              Margins
+              <select id="marginInches">
+                <option value="0.35">Compact 0.35"</option>
+                <option value="0.45">Balanced 0.45"</option>
+                <option value="0.55" selected>Standard 0.55"</option>
+                <option value="0.65">Spacious 0.65"</option>
+                <option value="0.75">Wide 0.75"</option>
+              </select>
+            </label>
+
+            <label>
+              Page target
+              <select id="pageLimit">
+                <option value="1">1 page</option>
+                <option value="2" selected>2 pages</option>
+                <option value="3">3 pages</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="toggle-grid">
+            <label class="switch-row"><input id="showProjects" type="checkbox" checked /> <span>Show projects</span></label>
+            <label class="switch-row"><input id="showCertifications" type="checkbox" checked /> <span>Show certifications</span></label>
+            <label class="switch-row"><input id="showInterests" type="checkbox" /> <span>Show interests</span></label>
+            <label class="switch-row"><input id="showWatermark" type="checkbox" checked /> <span>Add watermark</span></label>
           </div>
         </div>
       </div>
 
-      <div class="profile-editor">
-        <div class="panel">
-          <h3>Contact</h3>
-          <div class="mini-grid">
-            <input id="fullName" placeholder="Full name" />
-            <input id="email" placeholder="Email" />
-            <input id="phone" placeholder="Phone" />
-            <input id="location" placeholder="Location" />
-            <input id="linkedin" placeholder="LinkedIn" />
-            <input id="github" placeholder="GitHub" />
-            <input id="portfolio" placeholder="Portfolio" />
-            <input id="targetTitles" placeholder="Target titles, comma separated" />
+      <div class="editor-shell">
+        <div class="glass-panel">
+          <div class="panel-title">
+            <h3>Contact</h3>
+            <small>Use clean ATS-readable contact data.</small>
+          </div>
+          <div class="form-grid">
+            <input id="fullName" placeholder="Full name" autocomplete="off" />
+            <input id="email" placeholder="Email" autocomplete="off" />
+            <input id="phone" placeholder="Phone" autocomplete="off" />
+            <input id="location" placeholder="Location" autocomplete="off" />
+            <input id="linkedin" placeholder="LinkedIn" autocomplete="off" />
+            <input id="github" placeholder="GitHub" autocomplete="off" />
+            <input id="portfolio" placeholder="Portfolio" autocomplete="off" />
+            <input id="targetTitles" placeholder="Target titles, comma separated" autocomplete="off" />
           </div>
         </div>
 
-        <div class="panel">
-          <h3>Summary</h3>
-          <textarea id="summary" class="small" placeholder="Professional summary"></textarea>
+        <div class="grid-2">
+          <div class="glass-panel">
+            <div class="panel-title">
+              <h3>Summary</h3>
+              <small id="summaryCount">0 words</small>
+            </div>
+            <textarea id="summary" class="small" placeholder="Professional summary"></textarea>
+          </div>
+
+          <div class="glass-panel">
+            <div class="panel-title">
+              <h3>Technical Skills</h3>
+              <small id="skillsCount">0 skills</small>
+            </div>
+            <textarea id="technicalSkills" class="small" placeholder="Python, SQL, Azure, Project Management, ..."></textarea>
+          </div>
         </div>
 
-        <div class="panel">
-          <h3>Technical Skills</h3>
-          <textarea id="technicalSkills" class="small" placeholder="Python, SQL, Azure, Project Management, ..."></textarea>
-        </div>
-
-        <div class="panel">
-          <h3>Professional Experience</h3>
-          <input id="expTitle" placeholder="Job title" />
-          <input id="expCompany" placeholder="Company" />
-          <input id="expDates" placeholder="Dates, example: Jun 2024 - Present" />
+        <div class="glass-panel">
+          <div class="panel-title">
+            <h3>Professional Experience</h3>
+            <small id="bulletCount">0 bullets</small>
+          </div>
+          <div class="form-grid">
+            <input id="expTitle" placeholder="Job title" autocomplete="off" />
+            <input id="expCompany" placeholder="Company" autocomplete="off" />
+            <input id="expDates" placeholder="Dates, example: Jun 2024 - Present" autocomplete="off" />
+          </div>
           <textarea id="expBullets" class="medium" placeholder="One bullet per line"></textarea>
         </div>
 
-        <div class="panel">
-          <h3>Projects</h3>
-          <textarea id="projects" class="medium" placeholder="Project Name: description and bullets. Keep one project per paragraph."></textarea>
+        <div class="grid-2">
+          <div class="glass-panel">
+            <div class="panel-title">
+              <h3>Projects</h3>
+              <small>One project per paragraph</small>
+            </div>
+            <textarea id="projects" class="medium" placeholder="Project Name&#10;- Project bullet&#10;- Project bullet"></textarea>
+          </div>
+
+          <div class="glass-panel">
+            <div class="panel-title">
+              <h3>Education, Certifications, Interests</h3>
+              <small>Optional sections</small>
+            </div>
+            <textarea id="education" class="mini" placeholder="Education, one line per item"></textarea>
+            <textarea id="certifications" class="mini" placeholder="Certifications, one line per item"></textarea>
+            <textarea id="interests" class="mini" placeholder="Interests, comma separated"></textarea>
+          </div>
         </div>
 
-        <div class="panel">
-          <h3>Education, Certifications, Interests</h3>
-          <textarea id="education" class="small" placeholder="Education, one line per item"></textarea>
-          <textarea id="certifications" class="small" placeholder="Certifications, one line per item"></textarea>
-          <textarea id="interests" class="small" placeholder="Interests, comma separated"></textarea>
-        </div>
-
-        <button id="saveProfileBtn" class="btn primary full" type="button">Save master profile to dashboard</button>
+        <button id="saveProfileBtn" class="btn primary full" type="button">Save Master Profile</button>
       </div>
     </section>
 
     <section id="generate" class="section">
-      <div class="section-title">
-        <span>Step 2</span>
-        <h2>Generate ATS-targeted resume</h2>
-        <p>The saved profile is the source of truth. The AI will tailor it to the JD and your specific instructions.</p>
+      <div class="section-header">
+        <div>
+          <span class="section-label">Step 2</span>
+          <h2>Generate ATS-targeted resume</h2>
+          <p>
+            The generation engine will use baseline score, evidence mapping, semantic gaps, change log, and post-score.
+          </p>
+        </div>
       </div>
 
-      <div class="two-col">
-        <div class="panel">
-          <label for="jobDescription">Job description</label>
-          <textarea id="jobDescription" placeholder="Paste full job description here..."></textarea>
+      <div class="grid-2">
+        <div class="glass-panel">
+          <div class="panel-title">
+            <h3>Target job description</h3>
+            <small id="jdCount">0 words</small>
+          </div>
+          <textarea id="jobDescription" placeholder="Paste the complete job description here..."></textarea>
         </div>
 
-        <div class="panel">
+        <div class="glass-panel sticky-panel">
           <label for="targetRole">Target role</label>
-          <input id="targetRole" placeholder="Example: Infrastructure Project Lead 1" />
+          <input id="targetRole" placeholder="Example: Infrastructure Project Lead 1" autocomplete="off" />
 
           <label for="customInstructions">Specific instructions for AI</label>
           <textarea id="customInstructions" class="medium" placeholder="Example: Focus on project timelines, stakeholder communication, incident resolution, production support, and change implementation. Keep it two pages. Do not add certifications."></textarea>
 
           <label for="userRequestedAdditions">User-requested additions/replacements</label>
-          <textarea id="userRequestedAdditions" class="small" placeholder="Optional: Add Kubernetes per my request. Replace Jenkins with GitHub Actions. These will be flagged in Change Log."></textarea>
+          <textarea id="userRequestedAdditions" class="small" placeholder="Optional. Example: Add Kubernetes per my request. Replace Jenkins with GitHub Actions. These will be flagged in Change Log."></textarea>
 
           <button id="generateBtn" class="btn primary full" type="button">Generate ATS Resume</button>
           <div id="generateStatus" class="status hidden"></div>
@@ -176,36 +335,44 @@
 
       <div id="results" class="results hidden">
         <div class="score-grid">
-          <div class="score"><small>Resume</small><strong id="scoreResume">0</strong></div>
-          <div class="score"><small>JD Match</small><strong id="scoreJD">0</strong></div>
-          <div class="score"><small>Keyword</small><strong id="scoreKeyword">0</strong></div>
-          <div class="score active"><small>Final ATS</small><strong id="scoreFinal">0</strong></div>
+          <div class="score-card"><small>Resume</small><strong id="scoreResume">0</strong></div>
+          <div class="score-card"><small>JD Match</small><strong id="scoreJD">0</strong></div>
+          <div class="score-card"><small>Keyword</small><strong id="scoreKeyword">0</strong></div>
+          <div class="score-card final"><small>Final ATS</small><strong id="scoreFinal">0</strong></div>
         </div>
 
-        <p id="scoreReason"></p>
-        <a id="downloadLink" class="btn success" href="#">Download Watermarked DOCX</a>
+        <div class="glass-panel result-head">
+          <div>
+            <h3>Optimization result</h3>
+            <p id="scoreReason"></p>
+          </div>
+          <a id="downloadLink" class="btn success" href="#">Download DOCX</a>
+        </div>
 
         <div class="result-grid">
-          <div class="card"><h4>Matched Keywords</h4><div id="matchedKeywords" class="tags"></div></div>
-          <div class="card"><h4>Missing Keywords</h4><ul id="missingKeywords"></ul></div>
-          <div class="card"><h4>90+ Action Plan</h4><ul id="actionPlan"></ul></div>
-          <div class="card"><h4>Recruiter Warnings</h4><ul id="warnings"></ul></div>
-          <div class="card"><h4>Change Log</h4><ul id="changeLog"></ul></div>
-          <div class="card"><h4>Final Result</h4><ul id="finalResult"></ul></div>
-          <div class="card"><h4>Adaptive Analysis</h4><ul id="adaptiveAnalysis"></ul></div>
+          <div class="result-card"><h4>Matched Keywords</h4><div id="matchedKeywords" class="tags"></div></div>
+          <div class="result-card"><h4>Missing Keywords</h4><ul id="missingKeywords"></ul></div>
+          <div class="result-card"><h4>90+ Action Plan</h4><ul id="actionPlan"></ul></div>
+          <div class="result-card"><h4>Recruiter Warnings</h4><ul id="warnings"></ul></div>
+          <div class="result-card"><h4>Adaptive Analysis</h4><ul id="adaptiveAnalysis"></ul></div>
+          <div class="result-card"><h4>Change Log</h4><ul id="changeLog"></ul></div>
+          <div class="result-card wide"><h4>Final Result</h4><ul id="finalResult"></ul></div>
         </div>
 
-        <div class="preview">
-          <h4>Resume preview</h4>
+        <div class="glass-panel preview">
+          <div class="panel-title">
+            <h3>Generated resume preview</h3>
+            <small>Use DOCX download for final formatting.</small>
+          </div>
           <pre id="previewText"></pre>
         </div>
       </div>
     </section>
   </main>
 
-  <footer>
-    <strong>Resume Tailor Pro V7</strong>
-    <span>Master profile + dashboard + template settings + watermark download</span>
+  <footer class="footer">
+    <strong>Resume Tailor Pro V7.1</strong>
+    <span>Frontend UX Upgrade · Adaptive ATS Workflow · Recruiter-grade transparency</span>
   </footer>
 
   <script src="/static/app.js"></script>

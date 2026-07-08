@@ -1,7 +1,8 @@
 const $ = (id) => document.getElementById(id);
 
-const STORAGE_PROFILE = "rtp_v5_master_profile";
-const STORAGE_HISTORY = "rtp_v5_history";
+const STORAGE_PROFILE = "rtp_v7_master_profile";
+const STORAGE_HISTORY = "rtp_v7_history";
+const STORAGE_THEME = "rtp_v7_theme";
 
 const emptyProfile = () => ({
   contact: { full_name: "", email: "", phone: "", location: "", linkedin: "", github: "", portfolio: "" },
@@ -19,18 +20,53 @@ const emptyProfile = () => ({
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  loadSavedProfileIntoUI();
+  applySavedTheme();
+  clearProfileFields();
+  clearResults();
   refreshDashboard();
+  bindEvents();
+  updateLiveCounts();
+});
 
+function bindEvents() {
+  $("themeToggle").addEventListener("click", toggleTheme);
+  $("clearAllBtn").addEventListener("click", clearScreenOnly);
+  $("resetDashboardBtn").addEventListener("click", resetSavedData);
+  $("loadSavedProfileBtn").addEventListener("click", loadSavedProfileIntoUI);
   $("extractBtn").addEventListener("click", extractProfile);
+  $("clearProfileBtn").addEventListener("click", clearProfileFields);
   $("saveProfileBtn").addEventListener("click", saveProfile);
   $("generateBtn").addEventListener("click", generateResume);
-});
+
+  ["summary", "technicalSkills", "expBullets", "jobDescription"].forEach(id => {
+    $(id).addEventListener("input", updateLiveCounts);
+  });
+
+  $("resumeFile").addEventListener("change", () => {
+    clearProfileFields();
+    clearResults();
+    showStatus("extractStatus", "New file selected. Previous extracted fields were cleared. Click Extract Profile.", false);
+  });
+}
+
+function applySavedTheme() {
+  const saved = localStorage.getItem(STORAGE_THEME) || "light";
+  document.documentElement.setAttribute("data-theme", saved);
+  $("themeToggle").textContent = saved === "dark" ? "☀️" : "🌙";
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme") || "light";
+  const next = current === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem(STORAGE_THEME, next);
+  $("themeToggle").textContent = next === "dark" ? "☀️" : "🌙";
+}
 
 function getTemplateSettings() {
   return {
     template_name: "ATS Modern",
-    font_family: $("fontFamily").value.trim() || "Aptos",
+    font_family: $("fontFamily").value || "Aptos",
     body_font_size: Number($("bodyFontSize").value || 10),
     heading_font_size: Number($("headingFontSize").value || 11),
     name_font_size: Number($("nameFontSize").value || 18),
@@ -110,6 +146,48 @@ function profileToUI(profile) {
   $("education").value = (profile.education || []).map(e => [e.degree, e.school, e.location, e.graduation].filter(Boolean).join(" | ")).join("\n");
   $("certifications").value = (profile.certifications || []).join("\n");
   $("interests").value = (profile.interests || []).join(", ");
+
+  updateLiveCounts();
+}
+
+function clearProfileFields() {
+  [
+    "fullName", "email", "phone", "location", "linkedin", "github", "portfolio", "targetTitles",
+    "summary", "technicalSkills", "expTitle", "expCompany", "expDates", "expBullets",
+    "projects", "education", "certifications", "interests"
+  ].forEach(id => {
+    if ($(id)) $(id).value = "";
+  });
+
+  updateLiveCounts();
+}
+
+function clearScreenOnly() {
+  clearProfileFields();
+  clearResults();
+  ["resumeFile", "jobDescription", "targetRole", "customInstructions", "userRequestedAdditions"].forEach(id => {
+    if ($(id)) $(id).value = "";
+  });
+  hideStatus("extractStatus");
+  hideStatus("generateStatus");
+  updateLiveCounts();
+}
+
+function clearResults() {
+  const results = $("results");
+  if (results) results.classList.add("hidden");
+}
+
+function resetSavedData() {
+  if (!confirm("Reset saved profile and generation history from this browser?")) return;
+  localStorage.removeItem(STORAGE_PROFILE);
+  localStorage.removeItem(STORAGE_HISTORY);
+  localStorage.removeItem("rtp_v7_last_resume_score");
+  localStorage.removeItem("rtp_v5_master_profile");
+  localStorage.removeItem("rtp_v5_history");
+  localStorage.removeItem("rtp_v5_last_resume_score");
+  clearScreenOnly();
+  refreshDashboard();
 }
 
 async function extractProfile() {
@@ -119,17 +197,20 @@ async function extractProfile() {
     return;
   }
 
+  clearProfileFields();
+  clearResults();
+
   const form = new FormData();
   form.append("file", file);
 
-  showStatus("extractStatus", "Extracting profile sections from uploaded resume...", false);
+  showStatus("extractStatus", "Extracting fresh profile sections from the uploaded resume...", false);
 
   try {
     const response = await fetch("/api/v1/profiles/extract", { method: "POST", body: form });
     const data = await parseResponse(response);
     profileToUI(data.profile);
-    localStorage.setItem("rtp_v5_last_resume_score", String(data.resume_only_score || 0));
-    showStatus("extractStatus", `Profile extracted. Resume-only score: ${data.resume_only_score}/100. Review and click Save.`, false);
+    localStorage.setItem("rtp_v7_last_resume_score", String(data.resume_only_score || 0));
+    showStatus("extractStatus", `Profile extracted fresh. Resume-only score: ${data.resume_only_score}/100. Review and click Save.`, false);
     refreshDashboard();
   } catch (error) {
     showStatus("extractStatus", error.message, true);
@@ -139,9 +220,20 @@ async function extractProfile() {
 function saveProfile() {
   const profile = uiToProfile();
   localStorage.setItem(STORAGE_PROFILE, JSON.stringify(profile));
-  localStorage.setItem("rtp_v5_last_resume_score", estimateResumeOnly(profile));
+  localStorage.setItem("rtp_v7_last_resume_score", estimateResumeOnly(profile));
   refreshDashboard();
-  alert("Master profile saved to dashboard.");
+  showToast("Master profile saved.");
+}
+
+function loadSavedProfileIntoUI() {
+  const saved = localStorage.getItem(STORAGE_PROFILE);
+  if (!saved) {
+    showToast("No saved profile found.");
+    return;
+  }
+  clearProfileFields();
+  profileToUI(JSON.parse(saved));
+  showToast("Saved profile loaded.");
 }
 
 async function generateResume() {
@@ -155,7 +247,7 @@ async function generateResume() {
   }
 
   if (!profile.summary && !profile.technical_skills.length && !profile.professional_experience.length) {
-    showStatus("generateStatus", "Your profile is too empty. Build or extract a profile first.", true);
+    showStatus("generateStatus", "Your profile is too empty. Build, extract, or load a saved profile first.", true);
     return;
   }
 
@@ -171,7 +263,7 @@ async function generateResume() {
 
   $("generateBtn").disabled = true;
   $("generateBtn").textContent = "Generating...";
-  showStatus("generateStatus", "Generating ATS-targeted resume from your saved master profile...", false);
+  showStatus("generateStatus", "Generating ATS-targeted resume with baseline score, gap analysis, change log, and post-score...", false);
 
   try {
     const response = await fetch("/api/v1/resumes/generate", {
@@ -200,27 +292,36 @@ function renderResults(data) {
   $("scoreResume").textContent = b.resume_only_score || 0;
   $("scoreJD").textContent = b.jd_match_score || 0;
   $("scoreKeyword").textContent = b.keyword_score || 0;
-  $("scoreFinal").textContent = b.final_ats_estimate || 0;
+  $("scoreFinal").textContent = b.final_ats_estimate || data.final_result?.post_optimization_ats_score || 0;
   $("scoreReason").textContent = data.score_reason || "";
   $("downloadLink").href = data.download_url || "#";
-  $("downloadLink").download = data.filename || "resume_tailor_pro_v5.docx";
+  $("downloadLink").download = data.filename || "resume_tailor_pro_v7.docx";
+
   renderTags("matchedKeywords", data.matched_keywords || []);
   renderList("missingKeywords", data.missing_keywords || []);
   renderList("actionPlan", data.truthful_90_plus_actions || []);
   renderList("warnings", data.recruiter_warnings || []);
+  renderAdaptiveAnalysis(data.adaptive_analysis || {});
   renderChangeLog(data.change_log || {});
   renderFinalResult(data.final_result || {});
-  renderAdaptiveAnalysis(data.adaptive_analysis || {});
   $("previewText").textContent = data.preview_text || "";
 }
 
 function refreshDashboard() {
   const profile = localStorage.getItem(STORAGE_PROFILE);
   const history = getHistory();
+  const resumeScore = Number(localStorage.getItem("rtp_v7_last_resume_score") || 0);
+  const lastAts = Number(history[0]?.score || 0);
+
   $("savedProfileStatus").textContent = profile ? "Yes" : "No";
-  $("savedResumeScore").textContent = localStorage.getItem("rtp_v5_last_resume_score") || "0";
-  $("lastAtsScore").textContent = history[0]?.score || "0";
+  $("savedResumeScore").textContent = resumeScore;
+  $("lastAtsScore").textContent = lastAts;
   $("historyCount").textContent = history.length;
+
+  setMeter("profileMeter", profile ? 100 : 0);
+  setMeter("resumeMeter", resumeScore);
+  setMeter("atsMeter", lastAts);
+  setMeter("historyMeter", Math.min(100, history.length * 10));
 
   const list = $("historyList");
   list.innerHTML = "";
@@ -228,6 +329,7 @@ function refreshDashboard() {
     list.innerHTML = `<div class="history-item">No generated resumes yet.</div>`;
     return;
   }
+
   history.slice(0, 8).forEach(item => {
     const div = document.createElement("div");
     div.className = "history-item";
@@ -236,16 +338,11 @@ function refreshDashboard() {
   });
 }
 
-function loadSavedProfileIntoUI() {
-  const saved = localStorage.getItem(STORAGE_PROFILE);
-  if (saved) profileToUI(JSON.parse(saved));
-}
-
 function saveHistory(data, role) {
   const history = getHistory();
   history.unshift({
     role: role || "Target Role",
-    score: data.score_breakdown?.final_ats_estimate || 0,
+    score: data.final_result?.post_optimization_ats_score || data.score_breakdown?.final_ats_estimate || 0,
     filename: data.filename,
     date: new Date().toLocaleString(),
   });
@@ -255,6 +352,13 @@ function saveHistory(data, role) {
 function getHistory() {
   try { return JSON.parse(localStorage.getItem(STORAGE_HISTORY) || "[]"); }
   catch { return []; }
+}
+
+function updateLiveCounts() {
+  if ($("summaryCount")) $("summaryCount").textContent = `${wordCount($("summary").value)} words`;
+  if ($("skillsCount")) $("skillsCount").textContent = `${splitSkills($("technicalSkills").value).length} skills`;
+  if ($("bulletCount")) $("bulletCount").textContent = `${splitLines($("expBullets").value).length} bullets`;
+  if ($("jdCount")) $("jdCount").textContent = `${wordCount($("jobDescription").value)} words`;
 }
 
 async function parseResponse(response) {
@@ -270,8 +374,32 @@ function showStatus(id, message, error) {
   const box = $(id);
   box.textContent = message;
   box.classList.remove("hidden");
-  box.style.background = error ? "#ffecec" : "#fff8e6";
-  box.style.borderColor = error ? "#ffb3b3" : "#ffe1a2";
+  box.style.borderColor = error ? "color-mix(in srgb, var(--danger), transparent 60%)" : "color-mix(in srgb, var(--warning), transparent 60%)";
+}
+
+function hideStatus(id) {
+  if ($(id)) $(id).classList.add("hidden");
+}
+
+function showToast(message) {
+  const box = document.createElement("div");
+  box.className = "toast";
+  box.textContent = message;
+  Object.assign(box.style, {
+    position: "fixed",
+    right: "22px",
+    bottom: "22px",
+    padding: "14px 16px",
+    background: "var(--surface-strong)",
+    color: "var(--text)",
+    border: "1px solid var(--line)",
+    borderRadius: "16px",
+    boxShadow: "var(--shadow)",
+    zIndex: 999,
+    fontWeight: 900
+  });
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 2200);
 }
 
 function splitLines(value) {
@@ -299,6 +427,12 @@ function parseProjects(value) {
   });
 }
 
+function parseUserRequestedAdditions() {
+  const field = $("userRequestedAdditions");
+  if (!field) return [];
+  return field.value.split(/\n+/).map(x => x.trim()).filter(Boolean);
+}
+
 function renderTags(id, items) {
   const box = $(id);
   box.innerHTML = "";
@@ -315,40 +449,18 @@ function renderTags(id, items) {
 
 function renderList(id, items) {
   const list = $(id);
+  if (!list) return;
   list.innerHTML = "";
   if (!items.length) {
     list.innerHTML = "<li>No major issue detected.</li>";
     return;
   }
-  items.slice(0, 12).forEach(item => {
+  items.slice(0, 14).forEach(item => {
     const li = document.createElement("li");
     li.textContent = item;
     list.appendChild(li);
   });
 }
-
-function estimateResumeOnly(profile) {
-  let score = 0;
-  if (profile.contact.full_name) score += 10;
-  if (profile.contact.email || profile.contact.phone) score += 10;
-  if (profile.summary && profile.summary.split(/\s+/).length >= 25) score += 15;
-  if (profile.technical_skills.length >= 10) score += 20;
-  if (profile.professional_experience.length) score += 20;
-  if ((profile.professional_experience[0]?.bullets || []).length >= 5) score += 15;
-  if (profile.education.length) score += 10;
-  return Math.min(100, Math.max(20, score));
-}
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  }[char]));
-}
-
 
 function renderAdaptiveAnalysis(analysis) {
   const items = [];
@@ -356,17 +468,11 @@ function renderAdaptiveAnalysis(analysis) {
   if (analysis.jd_role_family) items.push(`JD role family: ${analysis.jd_role_family}`);
   if (analysis.role_alignment) items.push(`Role alignment: ${analysis.role_alignment}`);
   if (analysis.selected_playbook) items.push(`Selected playbook: ${analysis.selected_playbook}`);
+  (analysis.top_3_jd_priorities || []).slice(0, 3).forEach(x => items.push(`Top JD priority: ${x}`));
   (analysis.rewrite_focus || []).slice(0, 5).forEach(x => items.push(`Rewrite focus: ${x}`));
   (analysis.unsupported_requirements || []).slice(0, 4).forEach(x => items.push(`Gap: ${x}`));
   (analysis.validator_warnings || []).slice(0, 4).forEach(x => items.push(`Validator: ${x}`));
   renderList("adaptiveAnalysis", items);
-}
-
-
-function parseUserRequestedAdditions() {
-  const field = document.getElementById("userRequestedAdditions");
-  if (!field) return [];
-  return field.value.split(/\n+/).map(x => x.trim()).filter(Boolean);
 }
 
 function renderChangeLog(log) {
@@ -384,4 +490,36 @@ function renderFinalResult(result) {
   if (result.post_optimization_ats_score !== undefined) items.push(`Post-optimization ATS score: ${result.post_optimization_ats_score}/100`);
   if (result.score_improvement) items.push(`Score improvement: ${result.score_improvement}`);
   renderList("finalResult", items);
+}
+
+function estimateResumeOnly(profile) {
+  let score = 0;
+  if (profile.contact.full_name) score += 10;
+  if (profile.contact.email || profile.contact.phone) score += 10;
+  if (profile.summary && profile.summary.split(/\s+/).length >= 25) score += 15;
+  if (profile.technical_skills.length >= 10) score += 20;
+  if (profile.professional_experience.length) score += 20;
+  if ((profile.professional_experience[0]?.bullets || []).length >= 5) score += 15;
+  if (profile.education.length) score += 10;
+  return Math.min(100, Math.max(20, score));
+}
+
+function wordCount(value) {
+  return (value.match(/\b\w+\b/g) || []).length;
+}
+
+function setMeter(id, value) {
+  const meter = $(id);
+  if (!meter) return;
+  meter.style.width = `${Math.max(0, Math.min(100, Number(value) || 0))}%`;
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  }[char]));
 }
