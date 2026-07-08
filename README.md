@@ -1,61 +1,36 @@
-# Resume Tailor Pro V5
+# Resume Tailor Pro V7 All-in-One
 
-V5 changes the product from simple resume rewriting into a master-profile-based resume platform.
+This package includes the full V6 Adaptive Engine plus the new V7 ATS Recruiter Workflow Engine.
 
-## V5 features
+## Included from V6
 
-- Dashboard with saved master profile
-- Resume upload extraction into structured sections
-- Manual profile builder
-- Common resume sections:
-  - Contact
-  - Summary
-  - Technical Skills
-  - Professional Experience
-  - Projects
-  - Education
-  - Certifications
-  - Interests
-- Template settings:
-  - Font family
-  - Body font size
-  - Heading font size
-  - Name font size
-  - Margins
-  - Page limit
-  - Show/hide projects
-  - Show/hide certifications
-  - Show/hide interests
-  - Watermark on/off
-- JD match scoring
-- Resume-only score
-- Keyword score
-- Experience relevance score
-- Leadership/soft-skill score
-- Formatting score
-- Recruiter readability score
-- Final ATS estimate
-- Watermarked DOCX download
-- OpenAI-ready backend
-- Render-ready deployment
+- Resume role classification
+- Job description role classification
+- Role-family alignment detection
+- Role-specific playbooks
+- JD must-have analyzer
+- Evidence mapping
+- Unsupported requirement detection
+- Adaptive AI prompt engine
+- Human-tone validator
+- Generic AI phrase warnings
+- Truth caps for ATS score
 
-## Important product logic
+## New in V7
 
-The saved master profile is the source of truth.
-
-The system should:
-1. Create or extract a structured profile.
-2. Save the profile in the dashboard.
-3. Compare the job description against the structured profile.
-4. Generate a tailored resume using selected template settings.
-5. Add accurate ATS wording only when supported by the profile.
-6. Never fabricate companies, dates, skills, certifications, tools, or achievements.
-7. Provide a truthful 90+ action plan when the resume cannot honestly reach 90+.
+- Baseline ATS score before generation
+- Gap analysis split into missing hard skills, semantic gaps, and unsupported requirements
+- Semantic mapping, such as MongoDB → NoSQL, PostgreSQL → Relational Databases, Jenkins → CI/CD, AWS/Azure/GCP → Cloud Experience
+- Summary rules with 110-120 word target and no generic filler phrases
+- Bullet-count target of 7-8 bullets per employer/client where enough source evidence exists
+- Change Log for semantic mappings, keyword rephrasing, user-requested additions/replacements, unsupported JD skills not added, and title/structure adjustments
+- Post-optimization ATS score and score improvement summary
+- User-requested additions field in the UI
 
 ## Run locally
 
 ```powershell
-cd S:\jd_tailoring_api_starter\resume_tailor_pro_v5
+cd S:\jd_tailoring_api_starter\resume_tailor_pro_v7_all_in_one
 
 python -m venv venv
 .\venv\Scripts\Activate.ps1
@@ -75,19 +50,10 @@ http://127.0.0.1:8000
 
 ## Enable real AI
 
-Edit `.env`:
-
 ```text
 AI_PROVIDER=openai
 OPENAI_API_KEY=your_real_openai_api_key_here
 OPENAI_MODEL=gpt-4.1-mini
-```
-
-For free local testing:
-
-```text
-AI_PROVIDER=mock
-OPENAI_API_KEY=
 ```
 
 ## Deploy to Render
@@ -115,21 +81,33 @@ TARGET_ATS_SCORE=90
 FREE_DOWNLOAD_WATERMARK=true
 ```
 
-Health check path:
+## Copy into existing repo
 
-```text
-/health
+```powershell
+$V7 = "S:\jd_tailoring_api_starter\resume_tailor_pro_v7_all_in_one"
+$OLD = "S:\jd_tailoring_api_starter\jd_tailoring_public_app"
+
+robocopy $V7 $OLD /MIR /XD .git venv .venv __pycache__ /XF .env *.pyc *.log
 ```
 
-## Current limitation
+Then:
 
-The dashboard saves to browser localStorage for the MVP.
-For a real production product, add:
-- User login
-- PostgreSQL database
-- Cloud file storage
-- Background jobs
-- Payment system
-- Watermark removal for premium users
-- File expiration/deletion
-- Audit and security controls
+```powershell
+cd S:\jd_tailoring_api_starter\jd_tailoring_public_app
+
+python -m py_compile app\services\adaptive_ai_engine.py
+python -m py_compile app\services\ats_engine.py
+python -m py_compile app\services\evidence_mapper.py
+python -m py_compile app\services\semantic_mapper.py
+python -m py_compile app\services\change_log_builder.py
+
+git add .
+git commit -m "Upgrade to Resume Tailor Pro V7 all-in-one ATS recruiter workflow"
+git push
+```
+
+Then Render:
+
+```text
+Manual Deploy → Deploy latest commit
+```

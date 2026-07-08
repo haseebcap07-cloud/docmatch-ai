@@ -15,7 +15,7 @@ router = APIRouter(prefix="/resumes", tags=["Resume Generation"])
 
 
 def _output_dir() -> Path:
-    folder = Path(tempfile.gettempdir()) / "resume_tailor_pro_v5_outputs"
+    folder = Path(tempfile.gettempdir()) / "resume_tailor_pro_v7_outputs"
     folder.mkdir(parents=True, exist_ok=True)
     return folder
 
@@ -33,11 +33,13 @@ def generate_resume(payload: GenerateResumeRequest):
         target_role=payload.target_role,
         custom_instructions=payload.custom_instructions,
         template=payload.template_settings,
+        user_requested_additions=payload.user_requested_additions,
+        user_requested_replacements=payload.user_requested_replacements,
     )
 
     file_id = str(uuid.uuid4())[:8]
     name_part = clean_filename(profile.contact.full_name or "resume")
-    filename = clean_filename(f"resume_tailor_pro_v5_{name_part}_{file_id}.docx")
+    filename = clean_filename(f"resume_tailor_pro_v7_{name_part}_{file_id}.docx")
     output_path = _output_dir() / filename
 
     watermark = bool(payload.template_settings.show_watermark and settings.FREE_DOWNLOAD_WATERMARK)
@@ -56,6 +58,11 @@ def generate_resume(payload: GenerateResumeRequest):
         weak_requirements=ai["weak_requirements"],
         truthful_90_plus_actions=ai["truthful_90_plus_actions"],
         recruiter_warnings=ai["recruiter_warnings"],
+        adaptive_analysis=ai["adaptive_analysis"],
+        initial_analysis=ai["initial_analysis"],
+        gap_analysis=ai["gap_analysis"],
+        change_log=ai["change_log"],
+        final_result=ai["final_result"],
         generated_summary=ai["generated_summary"],
         generated_skills=ai["generated_skills"],
         generated_bullets=ai["generated_bullets"],

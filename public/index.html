@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Resume Tailor Pro V5</title>
+  <title>Resume Tailor Pro V7</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
@@ -11,7 +11,7 @@
     <div class="brand">
       <div class="logo">R</div>
       <div>
-        <strong>Resume Tailor Pro V5</strong>
+        <strong>Resume Tailor Pro V7</strong>
         <span>Master profile + ATS resume generator</span>
       </div>
     </div>
@@ -26,7 +26,7 @@
   <main>
     <section class="hero">
       <div>
-        <div class="pill">V5 product flow</div>
+        <div class="pill">V7 ATS recruiter workflow</div>
         <h1>Create a master resume profile once. Tailor it for every job.</h1>
         <p>
           Build or extract a structured career profile, save it in your dashboard, choose formatting,
@@ -166,6 +166,9 @@
           <label for="customInstructions">Specific instructions for AI</label>
           <textarea id="customInstructions" class="medium" placeholder="Example: Focus on project timelines, stakeholder communication, incident resolution, production support, and change implementation. Keep it two pages. Do not add certifications."></textarea>
 
+          <label for="userRequestedAdditions">User-requested additions/replacements</label>
+          <textarea id="userRequestedAdditions" class="small" placeholder="Optional: Add Kubernetes per my request. Replace Jenkins with GitHub Actions. These will be flagged in Change Log."></textarea>
+
           <button id="generateBtn" class="btn primary full" type="button">Generate ATS Resume</button>
           <div id="generateStatus" class="status hidden"></div>
         </div>
@@ -187,6 +190,9 @@
           <div class="card"><h4>Missing Keywords</h4><ul id="missingKeywords"></ul></div>
           <div class="card"><h4>90+ Action Plan</h4><ul id="actionPlan"></ul></div>
           <div class="card"><h4>Recruiter Warnings</h4><ul id="warnings"></ul></div>
+          <div class="card"><h4>Change Log</h4><ul id="changeLog"></ul></div>
+          <div class="card"><h4>Final Result</h4><ul id="finalResult"></ul></div>
+          <div class="card"><h4>Adaptive Analysis</h4><ul id="adaptiveAnalysis"></ul></div>
         </div>
 
         <div class="preview">
@@ -198,7 +204,7 @@
   </main>
 
   <footer>
-    <strong>Resume Tailor Pro V5</strong>
+    <strong>Resume Tailor Pro V7</strong>
     <span>Master profile + dashboard + template settings + watermark download</span>
   </footer>
 

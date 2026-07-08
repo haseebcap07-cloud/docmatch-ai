@@ -14,8 +14,8 @@ PUBLIC_DIR = BASE_DIR / "public"
 
 app = FastAPI(
     title=settings.APP_NAME,
-    version="5.0.0",
-    description="Resume Tailor Pro V5 — master profile, dashboard, template settings, ATS scoring, and watermark DOCX downloads.",
+    version="7.0.0",
+    description="Resume Tailor Pro V7 — adaptive role intelligence, evidence mapping, ATS scoring, dashboard, and watermark DOCX downloads.",
 )
 
 app.add_middleware(

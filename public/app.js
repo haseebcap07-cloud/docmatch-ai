@@ -164,6 +164,8 @@ async function generateResume() {
     job_description: jd,
     target_role: $("targetRole").value.trim(),
     custom_instructions: $("customInstructions").value.trim(),
+    user_requested_additions: parseUserRequestedAdditions(),
+    user_requested_replacements: [],
     template_settings: getTemplateSettings(),
   };
 
@@ -206,6 +208,9 @@ function renderResults(data) {
   renderList("missingKeywords", data.missing_keywords || []);
   renderList("actionPlan", data.truthful_90_plus_actions || []);
   renderList("warnings", data.recruiter_warnings || []);
+  renderChangeLog(data.change_log || {});
+  renderFinalResult(data.final_result || {});
+  renderAdaptiveAnalysis(data.adaptive_analysis || {});
   $("previewText").textContent = data.preview_text || "";
 }
 
@@ -342,4 +347,41 @@ function escapeHtml(value) {
     '"': "&quot;",
     "'": "&#039;"
   }[char]));
+}
+
+
+function renderAdaptiveAnalysis(analysis) {
+  const items = [];
+  if (analysis.resume_role_family) items.push(`Resume role family: ${analysis.resume_role_family}`);
+  if (analysis.jd_role_family) items.push(`JD role family: ${analysis.jd_role_family}`);
+  if (analysis.role_alignment) items.push(`Role alignment: ${analysis.role_alignment}`);
+  if (analysis.selected_playbook) items.push(`Selected playbook: ${analysis.selected_playbook}`);
+  (analysis.rewrite_focus || []).slice(0, 5).forEach(x => items.push(`Rewrite focus: ${x}`));
+  (analysis.unsupported_requirements || []).slice(0, 4).forEach(x => items.push(`Gap: ${x}`));
+  (analysis.validator_warnings || []).slice(0, 4).forEach(x => items.push(`Validator: ${x}`));
+  renderList("adaptiveAnalysis", items);
+}
+
+
+function parseUserRequestedAdditions() {
+  const field = document.getElementById("userRequestedAdditions");
+  if (!field) return [];
+  return field.value.split(/\n+/).map(x => x.trim()).filter(Boolean);
+}
+
+function renderChangeLog(log) {
+  const items = [];
+  (log.semantic_mappings_applied || []).slice(0, 8).forEach(x => items.push(`Semantic mapping: ${x}`));
+  (log.keyword_rephrasing || []).slice(0, 8).forEach(x => items.push(`Keyword rephrasing: ${x}`));
+  (log.user_requested_additions_replacements || []).slice(0, 8).forEach(x => items.push(`User-requested: ${x}`));
+  (log.unsupported_jd_skills_not_added || []).slice(0, 8).forEach(x => items.push(`Not added: ${x}`));
+  (log.title_or_structure_adjustments || []).slice(0, 5).forEach(x => items.push(`Structure/title: ${x}`));
+  renderList("changeLog", items);
+}
+
+function renderFinalResult(result) {
+  const items = [];
+  if (result.post_optimization_ats_score !== undefined) items.push(`Post-optimization ATS score: ${result.post_optimization_ats_score}/100`);
+  if (result.score_improvement) items.push(`Score improvement: ${result.score_improvement}`);
+  renderList("finalResult", items);
 }

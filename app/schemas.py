@@ -78,6 +78,8 @@ class GenerateResumeRequest(BaseModel):
     job_description: str = Field(..., min_length=40)
     target_role: str = ""
     custom_instructions: str = ""
+    user_requested_additions: list[str] = []
+    user_requested_replacements: list[str] = []
     template_settings: TemplateSettings = TemplateSettings()
 
 
@@ -92,6 +94,48 @@ class ScoreBreakdown(BaseModel):
     final_ats_estimate: int
 
 
+class AdaptiveAnalysis(BaseModel):
+    resume_role_family: str = "general"
+    jd_role_family: str = "general"
+    role_alignment: str = "unknown"
+    selected_playbook: str = "general"
+    top_3_jd_priorities: list[str] = []
+    supported_requirements: list[str] = []
+    partially_supported_requirements: list[str] = []
+    unsupported_requirements: list[str] = []
+    rewrite_focus: list[str] = []
+    validator_warnings: list[str] = []
+
+
+class InitialAnalysis(BaseModel):
+    baseline_ats_score: int = 0
+    resume_role_family: str = "general"
+    jd_role_family: str = "general"
+    role_alignment: str = "unknown"
+    summary: str = ""
+
+
+class GapAnalysis(BaseModel):
+    missing_hard_skills_not_added: list[str] = []
+    semantic_gaps: list[str] = []
+    likely_possessed_rephrasing: list[str] = []
+    unsupported_requirements: list[str] = []
+
+
+class ChangeLog(BaseModel):
+    semantic_mappings_applied: list[str] = []
+    keyword_rephrasing: list[str] = []
+    user_requested_additions_replacements: list[str] = []
+    unsupported_jd_skills_not_added: list[str] = []
+    title_or_structure_adjustments: list[str] = []
+
+
+class FinalResult(BaseModel):
+    post_optimization_ats_score: int = 0
+    score_improvement: str = ""
+    score_improvement_points: int = 0
+
+
 class GenerateResumeResponse(BaseModel):
     status: str = "success"
     document_id: str
@@ -104,6 +148,11 @@ class GenerateResumeResponse(BaseModel):
     weak_requirements: list[str]
     truthful_90_plus_actions: list[str]
     recruiter_warnings: list[str]
+    adaptive_analysis: AdaptiveAnalysis
+    initial_analysis: InitialAnalysis
+    gap_analysis: GapAnalysis
+    change_log: ChangeLog
+    final_result: FinalResult
     generated_summary: str
     generated_skills: list[str]
     generated_bullets: list[str]
