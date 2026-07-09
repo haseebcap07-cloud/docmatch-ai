@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from app.schemas import ResumeProfile, ContactInfo, ExperienceItem, ProjectItem, EducationItem
 from app.services.extractors import detect_sections, normalize_line
+from app.services.layout_analyzer import analyze_source_layout
 
 
 SECTION_KEYS = {
@@ -172,6 +173,8 @@ def build_profile_from_text(text: str) -> tuple[ResumeProfile, list[str]]:
     profile.interests = _simple_list(sections.get("interests", []))
     profile.languages = _simple_list(sections.get("languages", []))
     profile.achievements = _simple_list(sections.get("achievements", []))
+    profile.source_layout = analyze_source_layout(text)
+    profile.source_text_snapshot = text[:25000]
 
     notes = []
     detected = detect_sections(text)

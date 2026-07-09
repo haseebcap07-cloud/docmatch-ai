@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Resume Tailor Pro V7.1</title>
+  <title>Resume Tailor Pro V7.2</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
@@ -12,7 +12,7 @@
       <div class="logo-mark">R</div>
       <div>
         <strong>Resume Tailor Pro</strong>
-        <span>V7.1 ATS Recruiter Workflow</span>
+        <span>V7.2 ATS Recruiter Workflow</span>
       </div>
     </div>
 
@@ -141,6 +141,7 @@
             <button id="clearProfileBtn" class="btn secondary" type="button">Clear Profile Fields</button>
           </div>
           <div id="extractStatus" class="status hidden"></div>
+          <div id="sourceLayoutCard" class="source-layout hidden"></div>
         </div>
 
         <div class="glass-panel">
@@ -221,6 +222,8 @@
             <label class="switch-row"><input id="showCertifications" type="checkbox" checked /> <span>Show certifications</span></label>
             <label class="switch-row"><input id="showInterests" type="checkbox" /> <span>Show interests</span></label>
             <label class="switch-row"><input id="showWatermark" type="checkbox" checked /> <span>Add watermark</span></label>
+            <label class="switch-row"><input id="preserveSourceStructure" type="checkbox" checked /> <span>Preserve uploaded structure</span></label>
+            <label class="switch-row"><input id="strictLengthMatch" type="checkbox" checked /> <span>Match original length</span></label>
           </div>
         </div>
       </div>
@@ -371,7 +374,7 @@
   </main>
 
   <footer class="footer">
-    <strong>Resume Tailor Pro V7.1</strong>
+    <strong>Resume Tailor Pro V7.2</strong>
     <span>Frontend UX Upgrade · Adaptive ATS Workflow · Recruiter-grade transparency</span>
   </footer>
 

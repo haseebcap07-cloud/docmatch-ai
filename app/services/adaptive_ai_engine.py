@@ -47,6 +47,8 @@ class AdaptiveResumeEngine:
         user_requested_additions = user_requested_additions or []
         user_requested_replacements = user_requested_replacements or []
         profile_text = profile_to_text(profile)
+        source_layout = profile.source_layout or {}
+        preserve_structure = bool(getattr(template, 'preserve_source_structure', True))
 
         baseline_breakdown, match = compute_breakdown(profile, job_description, template)
         baseline_score = baseline_breakdown.final_ats_estimate
@@ -148,6 +150,15 @@ Act as an expert ATS optimization specialist and technical recruiter. Your goal 
 5. Generate exactly 7-8 bullets per employer/client when enough evidence exists.
 6. Re-score after optimization.
 </workflow>
+
+<structure_preservation_rules>
+- If preserve_source_structure is true, the uploaded resume is the blueprint.
+- Preserve section order, employer order, project order, education order, and approximate page length.
+- Preserve employer/client bullet counts when source layout provides counts.
+- Preserve Environment lines if present.
+- Do not convert the uploaded resume into a generic new format.
+- For PDF uploads, preserve extracted structure and length as closely as possible.
+</structure_preservation_rules>
 
 <summary_rules>
 - Rewrite the summary specifically for this role.

@@ -77,6 +77,8 @@ function getTemplateSettings() {
     show_certifications: $("showCertifications").checked,
     show_interests: $("showInterests").checked,
     show_watermark: $("showWatermark").checked,
+    preserve_source_structure: $("preserveSourceStructure") ? $("preserveSourceStructure").checked : true,
+    strict_length_match: $("strictLengthMatch") ? $("strictLengthMatch").checked : true,
   };
 }
 
@@ -209,6 +211,7 @@ async function extractProfile() {
     const response = await fetch("/api/v1/profiles/extract", { method: "POST", body: form });
     const data = await parseResponse(response);
     profileToUI(data.profile);
+    renderSourceLayout(data.profile?.source_layout || {});
     localStorage.setItem("rtp_v7_last_resume_score", String(data.resume_only_score || 0));
     showStatus("extractStatus", `Profile extracted fresh. Resume-only score: ${data.resume_only_score}/100. Review and click Save.`, false);
     refreshDashboard();
@@ -522,4 +525,25 @@ function escapeHtml(value) {
     '"': "&quot;",
     "'": "&#039;"
   }[char]));
+}
+
+
+function renderSourceLayout(layout) {
+  const card = document.getElementById("sourceLayoutCard");
+  if (!card) return;
+  if (!layout || !Object.keys(layout).length) {
+    card.classList.add("hidden");
+    card.innerHTML = "";
+    return;
+  }
+  const sections = (layout.source_section_order || []).join(" → ") || "Not detected";
+  const counts = layout.source_employer_bullet_counts || {};
+  const bulletText = Object.keys(counts).length
+    ? Object.entries(counts).map(([k, v]) => `${escapeHtml(k)}: ${v} bullets`).join("<br>")
+    : "No employer bullet counts detected";
+  card.classList.remove("hidden");
+  card.innerHTML = `<strong>Source structure captured</strong>
+    <span>Pages: ${layout.source_page_count || "?"} · Lines: ${layout.source_line_count || "?"}</span>
+    <span>Sections: ${escapeHtml(sections)}</span>
+    <span>${bulletText}</span>`;
 }

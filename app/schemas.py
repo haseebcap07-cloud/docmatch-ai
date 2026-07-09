@@ -47,6 +47,8 @@ class ResumeProfile(BaseModel):
     languages: list[str] = []
     achievements: list[str] = []
     work_authorization: str = ""
+    source_layout: dict = {}
+    source_text_snapshot: str = ""
 
 
 class TemplateSettings(BaseModel):
@@ -62,6 +64,8 @@ class TemplateSettings(BaseModel):
     show_certifications: bool = True
     show_interests: bool = False
     show_watermark: bool = True
+    preserve_source_structure: bool = True
+    strict_length_match: bool = True
 
 
 class ExtractProfileResponse(BaseModel):
