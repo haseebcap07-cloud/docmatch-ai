@@ -140,6 +140,16 @@ class FinalResult(BaseModel):
     score_improvement_points: int = 0
 
 
+class GeneratedExperienceItem(BaseModel):
+    title: str = ""
+    company: str = ""
+    location: str = ""
+    start_date: str = ""
+    end_date: str = ""
+    bullets: list[str] = []
+    environment: str = ""
+
+
 class GenerateResumeResponse(BaseModel):
     status: str = "success"
     document_id: str
@@ -160,4 +170,5 @@ class GenerateResumeResponse(BaseModel):
     generated_summary: str
     generated_skills: list[str]
     generated_bullets: list[str]
+    generated_experience: list[GeneratedExperienceItem] = []
     preview_text: str

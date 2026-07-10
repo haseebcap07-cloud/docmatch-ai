@@ -66,6 +66,7 @@ def generate_resume(payload: GenerateResumeRequest):
         generated_summary=ai["generated_summary"],
         generated_skills=ai["generated_skills"],
         generated_bullets=ai["generated_bullets"],
+        generated_experience=ai.get("generated_experience", []),
         preview_text=preview[:5000],
     )
 

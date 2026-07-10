@@ -1,62 +1,42 @@
-# Resume Tailor Pro V7.2 — Structure Preservation Mode
+# Resume Tailor Pro V8 — AI Quality Engine
 
-This version adds a structure/length preservation layer.
+V8 adds evidence-based writing, company-by-company experience rewriting, skill cleanup, assertion checks, and stronger DOCX style preservation.
 
-## What it fixes
+## Fixes
+- Summary no longer copies full JD content
+- Summary is rewritten from JD priorities + uploaded resume evidence
+- Technical skills cleanup removes junk tokens
+- Skill category labels before colon are bolded in DOCX
+- Each employer is preserved separately
+- Employer name, title, dates, and order are preserved
+- Generic bullets like "using verified experience from the master profile" are blocked
+- Post-score now considers bullets across all employers
+- Structure preservation remains ON by default
 
-When a user uploads a resume, the generated output should preserve the uploaded resume's:
-
-- section order
-- employer/client order
-- bullet counts where detected
-- project order
-- education order
-- approximate page count
-- approximate length
-- Environment lines if present
-
-## New frontend controls
-
-Template Settings now includes:
-
+## New services
 ```text
-Preserve uploaded structure
-Match original length
+app/services/resume_quality_rules.py
+app/services/experience_matrix.py
+app/services/assertion_engine.py
 ```
 
-Both are ON by default.
-
-## Important PDF vs DOCX note
-
-PDF uploads can preserve extracted text structure and approximate length.
-
-For truly exact editable formatting, DOCX uploads are the best input because DOCX contains editable layout, style, font, spacing, and XML structure. PDF extraction does not reliably preserve all formatting metadata.
-
-## Copy into current repo
-
+## Manual copy into GitHub repo
 ```powershell
-$V72 = "S:\jd_tailoring_api_starter\resume_tailor_pro_v7_2_structure_preserve"
-$OLD = "S:\jd_tailoring_api_starter\jd_tailoring_public_app"
-
-robocopy $V72 $OLD /MIR /XD .git venv .venv __pycache__ /XF .env *.pyc *.log
+$V8 = "S:\jd_tailoring_api_starter\resume_tailor_pro_v8_ai_quality_engine"
+$OLD = "S:\jd_tailoring_api_starter\docmatch-ai"
+robocopy $V8 $OLD /MIR /XD .git venv .venv __pycache__ /XF .env *.pyc *.log
 ```
 
 Then:
-
 ```powershell
-cd S:\jd_tailoring_api_starter\jd_tailoring_public_app
-
-python -m py_compile app\services\layout_analyzer.py
-python -m py_compile app\services\profile_parser.py
+cd S:\jd_tailoring_api_starter\docmatch-ai
+python -m py_compile app\services\resume_quality_rules.py
+python -m py_compile app\services\experience_matrix.py
+python -m py_compile app\services\assertion_engine.py
 python -m py_compile app\services\adaptive_ai_engine.py
-
+python -m py_compile app\services\docx_generator.py
+python -m py_compile app\services\post_score_engine.py
 git add .
-git commit -m "Add V7.2 structure preservation mode"
+git commit -m "Upgrade to V8 AI quality engine"
 git push
-```
-
-Render:
-
-```text
-Manual Deploy → Deploy latest commit
 ```
