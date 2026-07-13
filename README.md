@@ -1,42 +1,62 @@
-# Resume Tailor Pro V8 — AI Quality Engine
+# Resume Tailor Pro V8.1 — Document Structure Engine
 
-V8 adds evidence-based writing, company-by-company experience rewriting, skill cleanup, assertion checks, and stronger DOCX style preservation.
+V8.1 adds a dedicated document-structure layer so the app stops generating a generic resume layout from scratch.
 
-## Fixes
-- Summary no longer copies full JD content
-- Summary is rewritten from JD priorities + uploaded resume evidence
-- Technical skills cleanup removes junk tokens
-- Skill category labels before colon are bolded in DOCX
-- Each employer is preserved separately
-- Employer name, title, dates, and order are preserved
-- Generic bullets like "using verified experience from the master profile" are blocked
-- Post-score now considers bullets across all employers
-- Structure preservation remains ON by default
+## New engines
 
-## New services
 ```text
-app/services/resume_quality_rules.py
-app/services/experience_matrix.py
-app/services/assertion_engine.py
+app/services/document_router.py
+app/services/docx_structure_extractor.py
+app/services/pdf_layout_extractor.py
+app/services/layout_blueprint.py
+app/services/structure_confidence_scorer.py
+app/services/docx_style_preserver.py
+app/services/section_replacement_engine.py
 ```
 
-## Manual copy into GitHub repo
+## What it fixes
+
+```text
+DOCX upload: extracts paragraph order, bullets, sections, employer blocks, margins, fonts, tables, images.
+PDF upload: uses PyMuPDF first for blocks/fonts/pages and falls back to pypdf.
+Structure assertions: employer count, certifications, section order, page target, and bullet density are checked.
+Style preservation: template settings inherit source margins, dominant font, font size, heading size, and page count.
+```
+
+## Manual push
+
 ```powershell
-$V8 = "S:\jd_tailoring_api_starter\resume_tailor_pro_v8_ai_quality_engine"
+$V81 = "S:\jd_tailoring_api_starteresume_tailor_pro_v8_1_document_structure_engine"
 $OLD = "S:\jd_tailoring_api_starter\docmatch-ai"
-robocopy $V8 $OLD /MIR /XD .git venv .venv __pycache__ /XF .env *.pyc *.log
+
+robocopy $V81 $OLD /MIR /XD .git venv .venv __pycache__ /XF .env *.pyc *.log
 ```
 
 Then:
+
 ```powershell
 cd S:\jd_tailoring_api_starter\docmatch-ai
-python -m py_compile app\services\resume_quality_rules.py
-python -m py_compile app\services\experience_matrix.py
-python -m py_compile app\services\assertion_engine.py
-python -m py_compile app\services\adaptive_ai_engine.py
-python -m py_compile app\services\docx_generator.py
-python -m py_compile app\services\post_score_engine.py
+
+python -m py_compile app\services\document_router.py
+python -m py_compile app\services\docx_structure_extractor.py
+python -m py_compile app\services\pdf_layout_extractor.py
+python -m py_compile app\services\layout_blueprint.py
+python -m py_compile app\services\structure_confidence_scorer.py
+python -m py_compile app\services\docx_style_preserver.py
+python -m py_compile app\services\section_replacement_engine.py
+python -m py_compile app\servicesdaptive_ai_engine.py
+
 git add .
-git commit -m "Upgrade to V8 AI quality engine"
+git commit -m "Upgrade to V8.1 document structure engine"
 git push
 ```
+
+## Render settings
+
+```text
+AI_PROVIDER=openai
+OPENAI_API_KEY=your_real_openai_api_key_here
+OPENAI_MODEL=gpt-4.1-mini
+```
+
+For exact editable formatting, DOCX is the strongest source input. PDF preservation is approximate because PDFs do not reliably preserve editable Word layout metadata.
